@@ -1312,3 +1312,21 @@ img { max-width: 100%; display: block; }
   .hero-stats { flex-wrap: wrap; gap: 1rem; }
   .stats-bar { grid-template-columns: 1fr 1fr; }
 }
+.dev-footer {
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
+  padding: 15px;
+  background: #0b1a1f;
+  line-height: 1.6;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.dev-footer a {
+  color: #0bbfa0;
+  text-decoration: none;
+}
+
+.dev-footer strong {
+  color: #0bbfa0;
+}
