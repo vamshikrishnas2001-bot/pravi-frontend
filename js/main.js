@@ -20,6 +20,13 @@ async function bootSite() {
   initUI(); // always run UI init regardless
 }
 
+function safe(val, fallback) {
+  if (val === undefined || val === null || val === '') {
+    return fallback;
+  }
+  return val;
+}
+
 /* ──────────────────────────────────────────────────────
    APPLY ALL SECTIONS
 ────────────────────────────────────────────────────── */
