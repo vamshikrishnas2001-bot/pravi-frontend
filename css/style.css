@@ -274,6 +274,11 @@ img { max-width: 100%; display: block; }
   position: relative;
   overflow: hidden;
   padding: 120px 2rem 4rem;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 40%, rgba(0, 201, 167, 0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 15% 60%, rgba(0, 201, 167, 0.05) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 85% 60%, rgba(0, 201, 167, 0.05) 0%, transparent 60%),
+    var(--bg-primary);
 }
 
 .hero-bg-grid {
