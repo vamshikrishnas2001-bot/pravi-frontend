@@ -425,46 +425,51 @@ async function submitForm() {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
 
   try {
+    // 1. Save lead to backend
     const res = await fetch(`${API}/leads`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ name, phone, email, project, message }),
     });
+
     if (res.ok) {
-  try {
-    // Admin notification → template_slycisr
-    await emailjs.send('service_a94ptrg', 'template_slycisr', {
-      name:    name,
-      email:   email,
-      phone:   phone,
-      project: project || 'Not specified',
-      message: message || 'No message',
-    });
+      // 2. Send emails via EmailJS
+      try {
+        // Admin notification
+        await emailjs.send('service_a94ptrg', 'template_slycisr', {
+          name:    name,
+          email:   email,
+          phone:   phone,
+          project: project || 'Not specified',
+          message: message || 'No message',
+        });
 
-    // User thank-you → template_tb95gbc
-    await emailjs.send('service_a94ptrg', 'template_tb95gbc', {
-      name:     name,
-      to_email: email,
-      phone:    phone,
-      project:  project || 'Not specified',
-      message:  message || 'No message',
-    });
-  } catch (emailErr) {
-    console.warn('Email failed:', emailErr);
-  }
+        // User thank-you
+        await emailjs.send('service_a94ptrg', 'template_tb95gbc', {
+          name:     name,
+          to_email: email,
+          phone:    phone,
+          project:  project || 'Not specified',
+          message:  message || 'No message',
+        });
+      } catch (emailErr) {
+        console.warn('Email failed:', emailErr);
+      }
 
-  btn.style.display = 'none';
-  const success = document.getElementById('formSuccess');
-  if (success) success.classList.add('visible');
-  ['fName','fPhone','fEmail','fProject','fMessage'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
+      // 3. Show success
+      btn.style.display = 'none';
+      const success = document.getElementById('formSuccess');
+      if (success) success.classList.add('visible');
+      ['fName','fPhone','fEmail','fProject','fMessage'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
 
-} else {
-  btn.disabled = false;
-  btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
-  alert('Failed to send. Please try again.');
-}
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
+      alert('Failed to send. Please try again.');
+    }
+
   } catch {
     btn.disabled = false;
     btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
