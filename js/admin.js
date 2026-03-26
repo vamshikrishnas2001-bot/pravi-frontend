@@ -544,14 +544,14 @@ function openEditProduct(idx) {
 
 async function saveProduct() {
   const btn = document.querySelector('#modal-product .btn-save');
-  setLoading(btn, true);
 
   try {
     const imgFile = document.querySelector('#modal-product input[type=file]')?.files[0];
     let image = null;
 
+    // ✅ Just convert to base64 locally — no separate upload call
     if (imgFile) {
-      image = await uploadImage(imgFile, 'products', 'img_' + Date.now());
+      image = await toBase64(imgFile);
     }
 
     const newProduct = {
@@ -561,12 +561,8 @@ async function saveProduct() {
       link: document.getElementById('pLink').value || '#quote',
     };
 
-    // only add image if uploaded
-    if (image) {
-      newProduct.image = image;
-    }
+    if (image) newProduct.image = image;
 
-    // fetch existing data
     let items = [];
     try {
       const r = await fetch(`${API}/site/products`);
@@ -576,17 +572,14 @@ async function saveProduct() {
       }
     } catch {}
 
-    // update or add
     if (_editingProductId !== null && items[_editingProductId]) {
-      items[_editingProductId] = {
-        ...items[_editingProductId],
-        ...newProduct
-      };
+      items[_editingProductId] = { ...items[_editingProductId], ...newProduct };
     } else {
       items.push(newProduct);
     }
 
-    const ok = await saveSection('products', { items }, null);
+    // ✅ pass btn so saveSection handles the spinner
+    const ok = await saveSection('products', { items }, btn);
 
     if (ok) {
       closeModal('product');
@@ -594,13 +587,14 @@ async function saveProduct() {
       _editingProductId = null;
     }
 
-  } finally {
+  } catch (e) {
     setLoading(btn, false);
+    showToast('Something went wrong.', true);
   }
 }
 
 async function saveProducts() {
-  showToast("⚠️ Disabled to protect data");
+  showToast("⚠️ Use the edit button on each product to save.");
 }
 
 
