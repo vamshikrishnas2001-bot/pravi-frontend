@@ -768,10 +768,20 @@ img { max-width: 100%; display: block; }
 }
 
 .ba-grid {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr 1fr auto 1fr;
-  gap: 1rem;
+  display: flex;
+  justify-content: center;
   align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ba-grid .ba-card {
+  flex: 0 0 280px;
+  max-width: 320px;
+}
+
+.ba-grid .ba-arrow {
+  flex: 0 0 auto;
 }
 .ba-card { position: relative; overflow: hidden; }
 .ba-img {
