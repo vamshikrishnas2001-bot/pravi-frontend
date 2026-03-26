@@ -1326,6 +1326,15 @@ img { max-width: 100%; display: block; }
   color: #0bbfa0;
   text-decoration: none;
 }
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.dev-footer {
+  margin-top: auto;
+}
 
 .dev-footer strong {
   color: #0bbfa0;
