@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pravi Admin – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --teal:#00c9a7;--teal-dark:#00a88d;--teal-dim:rgba(0,201,167,0.12);
+  --bg:#0a0f0f;--surface:#111817;--surface2:#162020;
+  --text:#e8f0ef;--muted:#7a9997;--border:rgba(0,201,167,0.15);
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.bg-grid{position:fixed;inset:0;background-image:linear-gradient(rgba(0,201,167,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(0,201,167,0.04) 1px,transparent 1px);background-size:48px 48px;pointer-events:none}
+.bg-glow{position:fixed;top:-20%;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(0,201,167,0.08) 0%,transparent 70%);pointer-events:none}
+.login-wrap{position:relative;z-index:1;width:100%;max-width:440px;padding:2rem}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:2.5rem;justify-content:center}
+.brand-logo{width:44px;height:44px}
+.brand-text .name{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--teal);letter-spacing:2px;display:block;line-height:1}
+.brand-text .sub{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:2.5rem;backdrop-filter:blur(10px)}
+.card-header{margin-bottom:2rem}
+.card-header h1{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--text);letter-spacing:1px}
+.card-header p{font-size:13px;color:var(--muted);margin-top:4px}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:12px;font-weight:500;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.input-wrap{position:relative}
+.input-wrap i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:14px}
+.input-wrap input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px 12px 40px;color:var(--text);font-size:14px;font-family:'Inter',sans-serif;transition:border-color 0.2s,box-shadow 0.2s;outline:none}
+.input-wrap input:focus{border-color:var(--teal);box-shadow:0 0 0 3px var(--teal-dim)}
+.input-wrap input::placeholder{color:var(--muted)}
+.toggle-pw{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--muted);font-size:14px;background:none;border:none;padding:0}
+.toggle-pw:hover{color:var(--teal)}
+.row-opt{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.remember{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer}
+.remember input[type=checkbox]{accent-color:var(--teal);width:15px;height:15px}
+.forgot{font-size:13px;color:var(--teal);text-decoration:none}
+.forgot:hover{text-decoration:underline}
+.btn-login{width:100%;background:var(--teal);border:none;border-radius:8px;padding:13px;color:#0a0f0f;font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:background 0.2s,transform 0.1s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-login:hover{background:var(--teal-dark)}
+.btn-login:active{transform:scale(0.98)}
+.divider{border:none;border-top:1px solid var(--border);margin:1.5rem 0}
+.security-note{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);justify-content:center}
+.security-note i{color:var(--teal);font-size:12px}
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(100px);background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 20px;font-size:13px;color:var(--text);transition:transform 0.3s;z-index:100;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast i{color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="bg-glow"></div>
+
+<div class="login-wrap">
+  <div class="brand">
+    <img src="logo.jpeg" alt="Pravi Technologies" style="height:44px;width:auto;object-fit:contain;border-radius:4px;">
+    <div class="brand-text">
+      <span class="name">PRAVI</span>
+      <span class="sub">Technologies · Admin</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h1>SIGN IN</h1>
+      <p>Access the content management panel</p>
+    </div>
+
+    <div class="form-group">
+      <label>Username / Email</label>
+      <div class="input-wrap">
+        <i class="fa-solid fa-user"></i>
+        <input type="text" id="loginUser" placeholder="admin@pravitechnologies.com" autocomplete="username"/>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Password</label>
+      <div class="input-wrap">
+        <i class="fa-solid fa-lock"></i>
+        <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password"/>
+        <button class="toggle-pw" onclick="togglePw()" id="eyeBtn"><i class="fa-solid fa-eye" id="eyeIcon"></i></button>
+      </div>
+    </div>
+
+    <div class="row-opt">
+      <label class="remember">
+        <input type="checkbox" id="rememberMe"/> Remember me
+      </label>
+      <a href="#" class="forgot">Forgot password?</a>
+    </div>
+
+    <button class="btn-login" onclick="doLogin()">
+      <i class="fa-solid fa-right-to-bracket"></i> LOGIN TO ADMIN
+    </button>
+
+    <hr class="divider"/>
+    <div class="security-note">
+      <i class="fa-solid fa-shield-halved"></i>
+      Secured · Admin access only · All actions logged
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Logging in...</span></div>
+
+<script src="js/login.js"></script>
+</body>
+</html>
