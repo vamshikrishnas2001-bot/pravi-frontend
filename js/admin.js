@@ -174,7 +174,8 @@ async function fetchLeads() {
   const res = await fetch(`${API}/leads`, { headers: authHeaders() });
   if (res.status === 401) { window.location.href = 'admin-login.html'; return []; }
   const data = await res.json();
-  return Array.isArray(data) ? data : [];
+  // ✅ backend returns { leads, total, newCount }
+  return Array.isArray(data) ? data : (data.leads || []);
 }
 
 function esc(str) {
