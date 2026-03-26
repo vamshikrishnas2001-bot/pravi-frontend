@@ -545,54 +545,65 @@ function openEditProduct(idx) {
 async function saveProduct() {
   const btn = document.querySelector('#modal-product .btn-save');
   setLoading(btn, true);
+
   try {
     const imgFile = document.querySelector('#modal-product input[type=file]')?.files[0];
     let image = null;
-    if (imgFile) image = await uploadImage(imgFile, 'products', 'img_' + Date.now());
+
+    if (imgFile) {
+      image = await uploadImage(imgFile, 'products', 'img_' + Date.now());
+    }
 
     const newProduct = {
-      name:        document.getElementById('pName').value,
-      category:    document.getElementById('pCategory').value,
+      name: document.getElementById('pName').value,
+      category: document.getElementById('pCategory').value,
       description: document.getElementById('pDesc').value,
-      link:        document.getElementById('pLink').value || '#quote',
-      image,
+      link: document.getElementById('pLink').value || '#quote',
     };
 
-    // Fetch existing
+    // only add image if uploaded
+    if (image) {
+      newProduct.image = image;
+    }
+
+    // fetch existing data
     let items = [];
     try {
       const r = await fetch(`${API}/site/products`);
-      if (r.ok) { const d = await r.json(); items = d.items || []; }
+      if (r.ok) {
+        const d = await r.json();
+        items = d.items || [];
+      }
     } catch {}
 
+    // update or add
     if (_editingProductId !== null && items[_editingProductId]) {
-      items[_editingProductId] = { ...items[_editingProductId], ...newProduct };
-      if (!image) delete newProduct.image; // keep old image
+      items[_editingProductId] = {
+        ...items[_editingProductId],
+        ...newProduct
+      };
     } else {
       items.push(newProduct);
     }
 
     const ok = await saveSection('products', { items }, null);
+
     if (ok) {
       closeModal('product');
       loadSection('products', applyProducts);
       _editingProductId = null;
     }
-  } finally { setLoading(btn, false); }
+
+  } finally {
+    setLoading(btn, false);
+  }
 }
 
 async function saveProducts() {
-  const btn = document.querySelector('#panel-products .btn-save');
-  // Re-read list from DOM
-  const items = [];
-  document.querySelectorAll('#productList .list-item').forEach(el => {
-    items.push({
-      name:     el.querySelector('.lname').textContent,
-      category: el.querySelector('.lsub').textContent,
-    });
-  });
-  await saveSection('products', { items }, btn);
+  showToast("⚠️ Disabled to protect data");
 }
+
+
 
 /* ══════════════════════════════════════════════════════
    CLIENTS
