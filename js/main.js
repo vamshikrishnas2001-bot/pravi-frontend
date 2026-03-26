@@ -26,7 +26,6 @@ function safe(val, fallback) {
   }
   return val;
 }
-
 /* ──────────────────────────────────────────────────────
    APPLY ALL SECTIONS
 ────────────────────────────────────────────────────── */
@@ -73,30 +72,23 @@ function applyBranding(d) {
    HERO
 ────────────────────────────────────────────────────── */
 function applyHero(d) {
-  setText('heroEyebrow',    d.eyebrow       || 'Premium Lighting');
-  setText('heroBtnPrimary', d.btnPrimary    || 'Explore Products');
-  setText('heroBtnSecondary', d.btnSecondary || 'Get a Quote');
-  setText('heroDesc',       d.description   || 'Transforming spaces with cutting-edge lighting design.');
+  setText('heroEyebrow', safe(d.eyebrow, 'Premium Lighting'));
+  setText('heroBtnPrimary', safe(d.btnPrimary, 'Explore Products'));
+  setText('heroBtnSecondary', safe(d.btnSecondary, 'Get a Quote'));
+  setText('heroDesc', safe(d.description, 'Transforming spaces with cutting-edge lighting design.'));
 
   const title = document.getElementById('heroTitle');
   if (title) {
-    title.innerHTML = `${d.titleLine1 || 'INNOVATIVE'}<br>${d.titleLine2 || 'LIGHTING'}<br><span id="heroTitleAccent">${d.titleLine3Accent || 'SOLUTIONS'}</span>`;
+    title.innerHTML = `
+      ${safe(d.titleLine1, 'INNOVATIVE')}<br>
+      ${safe(d.titleLine2, 'LIGHTING')}<br>
+      <span id="heroTitleAccent">${safe(d.titleLine3Accent, 'SOLUTIONS')}</span>
+    `;
   }
 
-  if (d.bgImage !== undefined) {
-    const hero = document.getElementById('hero');
-    if (hero) {
-      if (d.bgImage) {
-        hero.style.backgroundImage = `url(${d.bgImage})`;
-        hero.style.backgroundSize = 'cover';
-        hero.style.backgroundPosition = 'center';
-      } else {
-        hero.style.backgroundImage = '';
-      }
-    }
-  } else if (d.bgImage) {
-    const hero = document.getElementById('hero');
-    if (hero) {
+  const hero = document.getElementById('hero');
+  if (hero) {
+    if (d.bgImage && d.bgImage !== '') {
       hero.style.backgroundImage = `url(${d.bgImage})`;
       hero.style.backgroundSize = 'cover';
       hero.style.backgroundPosition = 'center';
@@ -108,24 +100,15 @@ function applyHero(d) {
    ABOUT
 ────────────────────────────────────────────────────── */
 function applyAbout(d) {
-  setText('aboutEyebrow', d.eyebrow || 'Why Choose Us');
-  setText('aboutDesc',    d.description || '');
+  setText('aboutEyebrow', safe(d.eyebrow, 'Why Choose Us'));
+  setText('aboutDesc', safe(d.description, 'We provide best lighting solutions.'));
 
   const titleEl = document.getElementById('aboutTitle');
   if (titleEl) {
-    titleEl.innerHTML = `${d.titleLine1 || 'ILLUMINATE'}<br><span id="aboutTitleAccent">${d.titleLine2Accent || 'YOUR SPACES'}</span>`;
-  }
-
-  if (d.features && d.features.length) {
-    const iconMap = { 0: 'fa-bolt', 1: 'fa-palette', 2: 'fa-shield-halved', 3: 'fa-headset' };
-    const grid = document.getElementById('featuresGrid');
-    if (grid) {
-      grid.innerHTML = d.features.map((f, i) => `
-        <div class="feature-item">
-          <i class="fa-solid ${f.icon || iconMap[i] || 'fa-star'}"></i>
-          <div><h4>${esc(f.title)}</h4><p>${esc(f.desc)}</p></div>
-        </div>`).join('');
-    }
+    titleEl.innerHTML = `
+      ${safe(d.titleLine1, 'ILLUMINATE')}<br>
+      <span id="aboutTitleAccent">${safe(d.titleLine2Accent, 'YOUR SPACES')}</span>
+    `;
   }
 }
 
@@ -181,10 +164,22 @@ function applyStats(d) {
   setText('sb3s', s3.suffix); setText('sb3l', s3.label);
   setText('sb4s', s4.suffix); setText('sb4l', s4.label);
 
-  // Re-trigger counter animations now that data-target values are set
-  setTimeout(() => {
-    document.querySelectorAll('[data-target]').forEach(animateCounter);
-  }, 300);
+  // Re-trifunction applyStats(d) {
+  const s1 = d.s1 && d.s1.num ? d.s1 : { num: 500, suffix: '+', label: 'Projects Done' };
+  const s2 = d.s2 && d.s2.num ? d.s2 : { num: 50, suffix: '+', label: 'Industry Partners' };
+  const s3 = d.s3 && d.s3.num ? d.s3 : { num: 12, suffix: 'yrs', label: 'In Business' };
+
+  const statP = document.getElementById('statProjects');
+  const statPa = document.getElementById('statPartners');
+  const statY = document.getElementById('statYears');
+
+  if (statP) statP.textContent = s1.num;
+  if (statPa) statPa.textContent = s2.num;
+  if (statY) statY.textContent = s3.num;
+
+  setText('statProjectsLabel', s1.label);
+  setText('statPartnersLabel', s2.label);
+  setText('statYearsLabel', s3.label);
 }
 
 /* ──────────────────────────────────────────────────────
@@ -635,16 +630,15 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGallery
 /* ──────────────────────────────────────────────────────
    UTILITIES
 ────────────────────────────────────────────────────── */
-function setText(id, val, fallback = '') {
+function setText(id, val) {
   const el = document.getElementById(id);
   if (!el) return;
 
-  // ✅ FIX: handle empty string also
   if (val === undefined || val === null || val === '') {
-    el.textContent = fallback;
-  } else {
-    el.textContent = val;
+    return;
   }
+
+  el.textContent = val;
 }
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
