@@ -628,9 +628,16 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGallery
 /* ──────────────────────────────────────────────────────
    UTILITIES
 ────────────────────────────────────────────────────── */
-function setText(id, val) {
+function setText(id, val, fallback = '') {
   const el = document.getElementById(id);
-  if (el) el.textContent = val;
+  if (!el) return;
+
+  // ✅ FIX: handle empty string also
+  if (val === undefined || val === null || val === '') {
+    el.textContent = fallback;
+  } else {
+    el.textContent = val;
+  }
 }
 function esc(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
