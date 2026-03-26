@@ -425,6 +425,54 @@ table.leads-table{width:100%;border-collapse:collapse;font-size:13px}
       <div class="form-group"><label class="fl">Title Line 2 (Accent)</label><input type="text" id="aTitle2" value="YOUR SPACES"/></div>
       <div class="form-group"><label class="fl">Description</label><textarea id="aDesc">We specialize in bespoke lighting solutions that blend form and function. Our designs enhance ambiance, improve energy efficiency, and create immersive environments.</textarea></div>
     </div>
+
+    <!-- ABOUT IMAGES -->
+    <div style="margin-top:20px">
+      <div class="card-title" style="margin-bottom:6px"><i class="fa-solid fa-images"></i> ABOUT SECTION IMAGES</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:14px">These replace the decorative shapes in the "Illuminate Your Spaces" section. Upload 2 images to fill the left column grid.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+        <!-- Image 1 — Large (left, spans 2 rows) -->
+        <div>
+          <label class="fl" style="display:block;margin-bottom:6px">
+            <i class="fa-solid fa-expand" style="color:var(--teal)"></i> IMAGE 1 — LARGE (Left tall card)
+          </label>
+          <p style="font-size:10px;color:var(--muted);margin-bottom:8px">Ratio: <strong style="color:var(--teal)">1:2 (portrait)</strong> · Recommended: <strong style="color:var(--teal)">500 × 1000 px</strong> · JPG/WebP</p>
+          <div class="upload-zone" id="aboutImg1Zone" onclick="triggerAboutUpload(1)">
+            <input type="file" accept="image/*" id="aboutImg1Input" style="display:none" onchange="handleAboutImgUpload(this,1)"/>
+            <i class="fa-solid fa-cloud-arrow-up" id="aboutImg1Icon"></i>
+            <strong id="aboutImg1Label">Upload Large Image</strong>
+            <p id="aboutImg1Sub">500×1000px portrait · JPG/WebP</p>
+          </div>
+          <div id="aboutImg1Preview" style="display:none;margin-top:8px;position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--teal-border)">
+            <img id="aboutImg1Thumb" src="" alt="" style="width:100%;height:160px;object-fit:cover;display:block"/>
+            <button onclick="removeAboutImg(1)" style="position:absolute;top:6px;right:6px;background:rgba(255,87,87,0.92);border:none;border-radius:50%;width:26px;height:26px;color:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+
+        <!-- Image 2 — Small (right, single row) -->
+        <div>
+          <label class="fl" style="display:block;margin-bottom:6px">
+            <i class="fa-solid fa-compress" style="color:var(--teal)"></i> IMAGE 2 — SMALL (Right square card)
+          </label>
+          <p style="font-size:10px;color:var(--muted);margin-bottom:8px">Ratio: <strong style="color:var(--teal)">1:1 (square)</strong> · Recommended: <strong style="color:var(--teal)">500 × 500 px</strong> · JPG/WebP</p>
+          <div class="upload-zone" id="aboutImg2Zone" onclick="triggerAboutUpload(2)">
+            <input type="file" accept="image/*" id="aboutImg2Input" style="display:none" onchange="handleAboutImgUpload(this,2)"/>
+            <i class="fa-solid fa-cloud-arrow-up" id="aboutImg2Icon"></i>
+            <strong id="aboutImg2Label">Upload Small Image</strong>
+            <p id="aboutImg2Sub">500×500px square · JPG/WebP</p>
+          </div>
+          <div id="aboutImg2Preview" style="display:none;margin-top:8px;position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--teal-border)">
+            <img id="aboutImg2Thumb" src="" alt="" style="width:100%;height:160px;object-fit:cover;display:block"/>
+            <button onclick="removeAboutImg(2)" style="position:absolute;top:6px;right:6px;background:rgba(255,87,87,0.92);border:none;border-radius:50%;width:26px;height:26px;color:#fff;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <!-- END ABOUT IMAGES -->
+
     <div style="margin-top:16px">
       <div class="card-title" style="margin-bottom:10px"><i class="fa-solid fa-list"></i> FEATURE ITEMS (4)</div>
       <div id="featureList">
@@ -732,6 +780,73 @@ table.leads-table{width:100%;border-collapse:collapse;font-size:13px}
 <!-- Toast -->
 <div class="toast" id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg">Changes saved!</span></div>
 
+<script>
+// ============================================================
+//  ABOUT SECTION IMAGE UPLOAD — Admin Panel
+// ============================================================
+
+// State: base64 strings for both images
+const aboutImgState = { 1: null, 2: null };
+
+function triggerAboutUpload(n) {
+  document.getElementById('aboutImg' + n + 'Input').click();
+}
+
+function handleAboutImgUpload(input, n) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    aboutImgState[n] = e.target.result; // base64 data URL
+    showAboutImgPreview(n, e.target.result);
+  };
+  reader.readAsDataURL(file);
+}
+
+function showAboutImgPreview(n, src) {
+  document.getElementById('aboutImg' + n + 'Zone').style.display = 'none';
+  const preview = document.getElementById('aboutImg' + n + 'Preview');
+  document.getElementById('aboutImg' + n + 'Thumb').src = src;
+  preview.style.display = 'block';
+}
+
+function removeAboutImg(n) {
+  aboutImgState[n] = null;
+  document.getElementById('aboutImg' + n + 'Input').value = '';
+  document.getElementById('aboutImg' + n + 'Thumb').src = '';
+  document.getElementById('aboutImg' + n + 'Preview').style.display = 'none';
+  document.getElementById('aboutImg' + n + 'Zone').style.display = '';
+  // If previously saved, mark as deleted so site clears it
+  if (window._savedAboutImgs && window._savedAboutImgs[n]) {
+    aboutImgState[n] = '__deleted__';
+  }
+}
+
+// Called by existing saveAbout() — inject about images into payload
+function getAboutImagesPayload() {
+  return {
+    img1: aboutImgState[1],
+    img2: aboutImgState[2]
+  };
+}
+
+// On panel load, restore existing images from saved content
+function loadAboutImagesFromContent(content) {
+  const imgs = content && content.about && content.about.images;
+  if (!imgs) return;
+  window._savedAboutImgs = {};
+  if (imgs.img1 && imgs.img1 !== '__deleted__') {
+    window._savedAboutImgs[1] = true;
+    aboutImgState[1] = imgs.img1;
+    showAboutImgPreview(1, imgs.img1);
+  }
+  if (imgs.img2 && imgs.img2 !== '__deleted__') {
+    window._savedAboutImgs[2] = true;
+    aboutImgState[2] = imgs.img2;
+    showAboutImgPreview(2, imgs.img2);
+  }
+}
+</script>
 <script src="js/admin.js"></script>
 </body>
 </html>
