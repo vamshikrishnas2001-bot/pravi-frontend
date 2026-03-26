@@ -399,6 +399,39 @@ async function saveHero() {
   await saveSection('hero', data, btn);
 }
 
+async function removeHeroBg() {
+  if (!confirm('Remove the hero background image? This cannot be undone.')) return;
+  const btn = document.querySelector('#panel-hero .btn-save');
+
+  // Clear the preview zone
+  const zone = document.getElementById('heroImgZone');
+  if (zone) {
+    zone.style.backgroundImage = '';
+    const icon   = zone.querySelector('i');
+    const strong = zone.querySelector('strong');
+    const p      = zone.querySelector('p');
+    const input  = zone.querySelector('input[type=file]');
+    if (icon)   icon.style.display = 'block';
+    if (strong) strong.textContent = 'Upload Hero Image';
+    if (p)      p.textContent = 'Recommended: 1920×1080px, JPG/WebP';
+    if (input)  input.value = '';
+  }
+
+  // Save with bgImage set to empty string
+  const data = {
+    eyebrow:          document.getElementById('hEyebrow')?.value || '',
+    titleLine1:       document.getElementById('hLine1')?.value || '',
+    titleLine2:       document.getElementById('hLine2')?.value || '',
+    titleLine3Accent: document.getElementById('hLine3')?.value || '',
+    description:      document.getElementById('hDesc')?.value || '',
+    btnPrimary:       document.getElementById('hBtnPrimary')?.value || '',
+    btnSecondary:     document.getElementById('hBtnSecondary')?.value || '',
+    bgImage: '',  // ← explicitly clear it
+  };
+
+  await saveSection('hero', data, btn);
+}
+
 function previewUpload(input, zoneId) {
   if (!input.files[0]) return;
   const r = new FileReader();
