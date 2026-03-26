@@ -165,7 +165,14 @@ img { max-width: 100%; display: block; }
   gap: 0.6rem;
   text-decoration: none;
 }
-.pravi-logo svg { flex-shrink: 0; filter: drop-shadow(0 0 6px rgba(0,201,167,0.4)); }
+.pravi-logo img {
+  flex-shrink: 0;
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 4px;
+  filter: brightness(1.05);
+}
 .pravi-logo-text { display: flex; flex-direction: column; line-height: 1.1; }
 .pravi-name {
   font-family: var(--font-display);
