@@ -76,7 +76,18 @@ function applyHero(d) {
     title.innerHTML = `${d.titleLine1 || 'INNOVATIVE'}<br>${d.titleLine2 || 'LIGHTING'}<br><span id="heroTitleAccent">${d.titleLine3Accent || 'SOLUTIONS'}</span>`;
   }
 
-  if (d.bgImage) {
+  if (d.bgImage !== undefined) {
+    const hero = document.getElementById('hero');
+    if (hero) {
+      if (d.bgImage) {
+        hero.style.backgroundImage = `url(${d.bgImage})`;
+        hero.style.backgroundSize = 'cover';
+        hero.style.backgroundPosition = 'center';
+      } else {
+        hero.style.backgroundImage = '';
+      }
+    }
+  } else if (d.bgImage) {
     const hero = document.getElementById('hero');
     if (hero) {
       hero.style.backgroundImage = `url(${d.bgImage})`;
@@ -112,6 +123,24 @@ function applyAbout(d) {
 }
 
 /* ──────────────────────────────────────────────────────
+   COUNTER ANIMATION (top-level so applyStats can call it)
+────────────────────────────────────────────────────── */
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  if (isNaN(target)) return;
+  el.textContent = '0';
+  const start = performance.now();
+  const update = now => {
+    const progress = Math.min((now - start) / 1800, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target);
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = target;
+  };
+  requestAnimationFrame(update);
+}
+
+/* ──────────────────────────────────────────────────────
    STATS
 ────────────────────────────────────────────────────── */
 function applyStats(d) {
@@ -144,6 +173,11 @@ function applyStats(d) {
   setText('sb2s', s2.suffix); setText('sb2l', s2.label);
   setText('sb3s', s3.suffix); setText('sb3l', s3.label);
   setText('sb4s', s4.suffix); setText('sb4l', s4.label);
+
+  // Re-trigger counter animations now that data-target values are set
+  setTimeout(() => {
+    document.querySelectorAll('[data-target]').forEach(animateCounter);
+  }, 300);
 }
 
 /* ──────────────────────────────────────────────────────
@@ -446,28 +480,17 @@ function initUI() {
   /* Scroll to top */
   if (scrollTopBtn) scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
-  /* Counter animation */
-  const animateCounter = el => {
-    const target = parseInt(el.dataset.target);
-    if (isNaN(target)) return;
-    const start = performance.now();
-    const update = now => {
-      const progress = Math.min((now - start) / 1800, 1);
-      const eased    = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.floor(eased * target);
-      if (progress < 1) requestAnimationFrame(update);
-      else el.textContent = target;
-    };
-    requestAnimationFrame(update);
-  };
-  new IntersectionObserver((entries, obs) => {
+  /* Counter animation — uses top-level animateCounter() */
+  window._counterObserver = new IntersectionObserver((entries, obs) => {
     entries.forEach(e => {
       if (e.isIntersecting) {
         e.target.querySelectorAll('[data-target]').forEach(animateCounter);
         obs.unobserve(e.target);
       }
     });
-  }, { threshold: 0.3 }).observe(document.querySelector('.stats-bar') || document.body);
+  }, { threshold: 0.3 });
+  const statsBar = document.querySelector('.stats-bar');
+  if (statsBar) window._counterObserver.observe(statsBar);
 
   /* Facility slider */
   initFacilitySlider();
