@@ -1442,3 +1442,45 @@ body {
   background-size: 40px 40px;
   opacity: 0.2;
 }
+/* 🔥 SIDE LED GLOW EFFECT */
+#hero::before,
+#hero::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 400px;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* LEFT GLOW */
+#hero::before {
+  left: -100px;
+  background: radial-gradient(
+    circle at left center,
+    rgba(0, 255, 180, 0.25),
+    transparent 70%
+  );
+}
+
+/* RIGHT GLOW */
+#hero::after {
+  right: -100px;
+  background: radial-gradient(
+    circle at right center,
+    rgba(0, 255, 180, 0.25),
+    transparent 70%
+  );
+}
+
+@keyframes glowMove {
+  0% { opacity: 0.2; }
+  50% { opacity: 0.4; }
+  100% { opacity: 0.2; }
+}
+
+#hero::before,
+#hero::after {
+  animation: glowMove 4s ease-in-out infinite;
+}
