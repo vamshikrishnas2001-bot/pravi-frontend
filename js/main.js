@@ -716,3 +716,7 @@ window.addEventListener("load", function () {
 
   }, 2000);
 });
+document.querySelectorAll('.social-links a').forEach(link => {
+  link.setAttribute('target', '_blank');
+  link.setAttribute('rel', 'noopener noreferrer');
+});
