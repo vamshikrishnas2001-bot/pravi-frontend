@@ -461,6 +461,13 @@ function applyAbout(d) {
   set('aTitle1',  d.titleLine1);
   set('aTitle2',  d.titleLine2Accent);
   set('aDesc',    d.description);
+
+  // Restore saved about images into upload zones
+  if (d.images) {
+    if (d.images.img1) _restoreAboutImgPreview(1, d.images.img1);
+    if (d.images.img2) _restoreAboutImgPreview(2, d.images.img2);
+  }
+
   if (d.features && Array.isArray(d.features)) {
     const list = document.getElementById('featureList');
     if (list) {
@@ -480,18 +487,69 @@ function applyAbout(d) {
   }
 }
 
+/* About image upload helpers */
+var _aboutImgData = { 1: null, 2: null };
+
+function _restoreAboutImgPreview(n, src) {
+  _aboutImgData[n] = src;
+  const zone    = document.getElementById('aboutImg' + n + 'Zone');
+  const preview = document.getElementById('aboutImg' + n + 'Preview');
+  const thumb   = document.getElementById('aboutImg' + n + 'Thumb');
+  if (zone)    zone.style.display    = 'none';
+  if (thumb)   thumb.src             = src;
+  if (preview) preview.style.display = 'block';
+}
+
+function triggerAboutUpload(n) {
+  document.getElementById('aboutImg' + n + 'Input').click();
+}
+
+function handleAboutImgUpload(input, n) {
+  const file = input.files[0]; if (!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    _aboutImgData[n] = e.target.result;
+    _restoreAboutImgPreview(n, e.target.result);
+  };
+  r.readAsDataURL(file);
+}
+
+function removeAboutImg(n) {
+  _aboutImgData[n] = '';
+  const input   = document.getElementById('aboutImg' + n + 'Input');
+  const thumb   = document.getElementById('aboutImg' + n + 'Thumb');
+  const preview = document.getElementById('aboutImg' + n + 'Preview');
+  const zone    = document.getElementById('aboutImg' + n + 'Zone');
+  if (input)   input.value           = '';
+  if (thumb)   thumb.src             = '';
+  if (preview) preview.style.display = 'none';
+  if (zone)    zone.style.display    = '';
+}
+
 async function saveAbout() {
   const btn = document.querySelector('#panel-about .btn-save');
   const features = [];
   document.querySelectorAll('#featureList .list-item').forEach(el => {
     features.push({ title: el.querySelector('.lname').textContent, desc: el.querySelector('.lsub').textContent });
   });
+
+  // Fetch current saved about data to preserve existing images if not changed
+  let existingImages = { img1: null, img2: null };
+  try {
+    const r = await fetch(`${API}/site/about`);
+    if (r.ok) { const d = await r.json(); existingImages = d.images || existingImages; }
+  } catch {}
+
   const data = {
-    eyebrow:      document.getElementById('aEyebrow')?.value || '',
-    titleLine1:   document.getElementById('aTitle1')?.value || '',
+    eyebrow:          document.getElementById('aEyebrow')?.value || '',
+    titleLine1:       document.getElementById('aTitle1')?.value || '',
     titleLine2Accent: document.getElementById('aTitle2')?.value || '',
-    description:  document.getElementById('aDesc')?.value || '',
+    description:      document.getElementById('aDesc')?.value || '',
     features,
+    images: {
+      img1: _aboutImgData[1] !== null ? _aboutImgData[1] : existingImages.img1,
+      img2: _aboutImgData[2] !== null ? _aboutImgData[2] : existingImages.img2,
+    }
   };
   await saveSection('about', data, btn);
 }
