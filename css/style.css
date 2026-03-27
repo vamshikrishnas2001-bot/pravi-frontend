@@ -1386,21 +1386,6 @@ body {
   align-items: center;
 }
 
-.ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid rgba(0,201,167,0.3);
-  animation: pulseRing 3s infinite;
-}
-
-.ring1 { width: 180px; height: 180px; }
-.ring2 { width: 260px; height: 260px; animation-delay: 1s; opacity: 0.5; }
-
-@keyframes pulseRing {
-  0%,100% { transform: scale(1); opacity: 0.5; }
-  50% { transform: scale(1.1); opacity: 1; }
-}
-
 .loader-logo {
   width: 120px;
   z-index: 2;
