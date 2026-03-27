@@ -334,15 +334,19 @@ function applyProducts(d) {
   if (!d.items || !d.items.length) return;
   const grid = document.getElementById('productsGrid');
   if (!grid) return;
+
   grid.innerHTML = d.items.map(p => `
     <div class="product-card" data-category="${esc(p.category || '').toLowerCase()}">
-      <div class="product-img" style="${p.image ? `background-image:url(${p.image});background-size:cover;background-position:center` : 'background:linear-gradient(135deg,#1a2a2a,#0d1f1f)'}"></div>
+      <div class="product-img">
+        ${p.image ? `<img src="${p.image}" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : ''}
+      </div>
       <div class="product-info">
         <h3>${esc(p.name)}</h3>
         <p>${esc(p.category)}</p>
         <a href="${esc(p.link || '#quote')}" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
       </div>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 
 /* ──────────────────────────────────────────────────────
@@ -352,13 +356,15 @@ function applyFacility(d) {
   if (!d.images || !d.images.length) return;
   const slider = document.getElementById('facilitySlider');
   if (!slider) return;
+
   slider.innerHTML = d.images.map(src =>
-    `<div class="facility-slide" style="background-image:url(${src});background-size:cover;background-position:center"></div>`
+    `<div class="facility-slide">
+      <img src="${src}" loading="lazy" style="width:100%;height:100%;object-fit:cover">
+    </div>`
   ).join('');
-  // Reinit slider dots
+
   initFacilitySlider();
 }
-
 /* ──────────────────────────────────────────────────────
    GALLERY
 ────────────────────────────────────────────────────── */
@@ -366,12 +372,18 @@ function applyGallery(d) {
   if (!d.images || !d.images.length) return;
   const grid = document.getElementById('galleryGrid');
   if (!grid) return;
+
   const sizeClasses = ['tall', '', '', 'wide', '', 'tall', '', ''];
+
   grid.innerHTML = d.images.map((item, i) => {
     const src = item.src || item;
     const cat = item.category || 'all';
     const cls = sizeClasses[i % sizeClasses.length];
-    return `<div class="gallery-item ${cls}" data-cat="${esc(cat)}" style="background-image:url(${src});background-size:cover;background-position:center"></div>`;
+
+    return `
+    <div class="gallery-item ${cls}" data-cat="${esc(cat)}">
+      <img src="${src}" loading="lazy" style="width:100%;height:100%;object-fit:cover">
+    </div>`;
   }).join('');
 }
 
@@ -382,7 +394,7 @@ function applyBeforeAfter(d) {
   if (!d.pairs || !d.pairs.length) return;
   const container = document.querySelector('#before-after .container');
   if (!container) return;
-  // Keep section header, replace ba-sets
+
   const header = container.querySelector('.section-header');
   container.innerHTML = '';
   if (header) container.appendChild(header);
@@ -390,23 +402,31 @@ function applyBeforeAfter(d) {
   d.pairs.forEach((pair, i) => {
     const div = document.createElement('div');
     div.className = 'ba-set';
+
     div.innerHTML = `
       <p class="ba-set-title">Project ${i + 1}</p>
       <div class="ba-grid">
         <div class="ba-card">
-          <div class="ba-img before" style="${pair.before ? `background-image:url(${pair.before});background-size:cover;background-position:center` : ''}"></div>
+          <div class="ba-img before">
+            ${pair.before ? `<img src="${pair.before}" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : ''}
+          </div>
           <div class="ba-label">Before</div>
         </div>
+
         <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+
         <div class="ba-card">
-          <div class="ba-img after" style="${pair.after ? `background-image:url(${pair.after});background-size:cover;background-position:center` : ''}"></div>
+          <div class="ba-img after">
+            ${pair.after ? `<img src="${pair.after}" loading="lazy" style="width:100%;height:100%;object-fit:cover">` : ''}
+          </div>
           <div class="ba-label teal">After</div>
         </div>
-      </div>`;
+      </div>
+    `;
+
     container.appendChild(div);
   });
 }
-
 /* ══════════════════════════════════════════════════════
    QUOTE FORM — sends lead to backend
 ══════════════════════════════════════════════════════ */
