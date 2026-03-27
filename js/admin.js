@@ -556,7 +556,7 @@ function applyProducts(d) {
       </div>
       <div class="list-item-actions">
         <button class="icon-btn" onclick="openEditProduct(${i})"><i class="fa-solid fa-pen"></i></button>
-        <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
+        <button class="icon-btn del" onclick="deleteProduct(${i})"><i class="fa-solid fa-trash"></i></button>
       </div>
     </div>`).join('');
   document.getElementById('statProducts').textContent = d.items.length;
@@ -631,6 +631,35 @@ async function saveProducts() {
   showToast("⚠️ Use the edit button on each product to save.");
 }
 
+async function deleteProduct(index) {
+  if (!confirm("Delete this product?")) return;
+
+  try {
+    // get current data
+    const res = await fetch(`${API}/site/products`);
+    const data = await res.json();
+
+    let items = data.items || [];
+
+    // remove item
+    items.splice(index, 1);
+
+    // save updated list
+    await fetch(`${API}/site/products`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ items })
+    });
+
+    showToast("Product deleted ✅");
+
+    // reload UI
+    loadSection('products', applyProducts);
+
+  } catch {
+    showToast("Delete failed ❌", true);
+  }
+}
 
 
 /* ══════════════════════════════════════════════════════
@@ -986,14 +1015,18 @@ function applyBeforeAfter(d) {
   if (!d || !d.pairs) return;
   const list = document.getElementById('baPairList');
   if (!list) return;
-  // Clear existing dynamic pairs (keep first 2 static ones or replace all)
+
   list.innerHTML = '';
+
   d.pairs.forEach((pair, i) => {
     const div = document.createElement('div');
     div.className = 'ba-pair';
+
     div.innerHTML = `
       <div>
-        <div class="card-title" style="font-size:12px;margin-bottom:8px"><i class="fa-solid fa-circle" style="color:var(--muted)"></i> BEFORE ${i + 1}</div>
+        <div class="card-title" style="font-size:12px;margin-bottom:8px">
+          <i class="fa-solid fa-circle" style="color:var(--muted)"></i> BEFORE ${i + 1}
+        </div>
         <div class="upload-zone" style="${pair.before ? `background-image:url(${pair.before});background-size:cover;background-position:center` : ''}">
           <input type="file" accept="image/*"/>
           <i class="fa-solid fa-cloud-arrow-up" ${pair.before ? 'style="display:none"' : ''}></i>
@@ -1001,18 +1034,60 @@ function applyBeforeAfter(d) {
           <p>${pair.before ? '' : 'Current state'}</p>
         </div>
       </div>
+
       <div class="arr"><i class="fa-solid fa-arrow-right"></i></div>
+
       <div>
-        <div class="card-title" style="font-size:12px;margin-bottom:8px"><i class="fa-solid fa-circle" style="color:var(--teal)"></i> AFTER ${i + 1}</div>
+        <div class="card-title" style="font-size:12px;margin-bottom:8px">
+          <i class="fa-solid fa-circle" style="color:var(--teal)"></i> AFTER ${i + 1}
+        </div>
         <div class="upload-zone" style="${pair.after ? `background-image:url(${pair.after});background-size:cover;background-position:center` : ''}">
           <input type="file" accept="image/*"/>
           <i class="fa-solid fa-cloud-arrow-up" ${pair.after ? 'style="display:none"' : ''}></i>
           <strong>${pair.after ? 'Image set ✓' : 'Upload After'}</strong>
           <p>${pair.after ? '' : 'Transformed result'}</p>
         </div>
-      </div>`;
+      </div>
+
+      <!-- 🔥 DELETE BUTTON -->
+      <button onclick="deleteBeforeAfter(${i})"
+        style="position:absolute;top:10px;right:10px;
+        background:#ff5757;border:none;color:#fff;
+        padding:6px 10px;border-radius:6px;cursor:pointer">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    `;
+
+    div.style.position = "relative"; // needed for button position
+
     list.appendChild(div);
   });
+}
+
+async function deleteBeforeAfter(index) {
+  if (!confirm("Delete this item?")) return;
+
+  try {
+    const res = await fetch(`${API}/site/beforeafter`);
+    const data = await res.json();
+
+    let pairs = data.pairs || [];
+
+    pairs.splice(index, 1);
+
+    await fetch(`${API}/site/beforeafter`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ pairs })
+    });
+
+    showToast("Deleted ✅");
+
+    loadSection('beforeafter', applyBeforeAfter);
+
+  } catch {
+    showToast("Delete failed ❌", true);
+  }
 }
 
 function addBAPair() {
