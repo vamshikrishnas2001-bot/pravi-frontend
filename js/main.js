@@ -1,654 +1,1094 @@
 /* ═══════════════════════════════════════════════════════
-   PRAVI TECHNOLOGIES — FRONTEND
-   All content loaded from MongoDB via Render backend API
+   PRAVI ADMIN PANEL — FULL BACKEND INTEGRATION
+   Every panel → reads from & saves to MongoDB via Render
    ═══════════════════════════════════════════════════════ */
 
 const API = 'https://pravi-backend.onrender.com/api';
 
-/* ──────────────────────────────────────────────────────
-   BOOT — fetch all site data, apply, then init UI
-────────────────────────────────────────────────────── */
-async function bootSite() {
+/* ─── Auth ─── */
+const getToken = () => localStorage.getItem('token');
+const authHeaders = () => ({ 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() });
+function checkAuth() {
+  if (!getToken()) { window.location.href = 'admin-login.html'; return false; }
+  return true;
+}
+
+/* ─── Toast ─── */
+function showToast(msg, isErr = false) {
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.querySelector('i').style.color = isErr ? '#ff5757' : '#00c9a7';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ─── Loading state ─── */
+function setLoading(btnEl, loading) {
+  if (!btnEl) return;
+  if (loading) { btnEl._orig = btnEl.innerHTML; btnEl.disabled = true; btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
+  else { btnEl.disabled = false; btnEl.innerHTML = btnEl._orig || btnEl.innerHTML; }
+}
+
+/* ─── Panel navigation ─── */
+function showPanel(id, el) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  if (el) el.classList.add('active');
+  const titles = {
+    dashboard: 'DASHBOARD', leads: 'LEADS & QUOTE REQUESTS', branding: 'BRANDING & SEO',
+    hero: 'HERO SECTION', about: 'ABOUT SECTION', products: 'PRODUCTS',
+    facility: 'FACILITY IMAGES', gallery: 'PROJECT GALLERY',
+    'before-after': 'BEFORE & AFTER', clients: 'CLIENTS', testimonials: 'TESTIMONIALS',
+    stats: 'STATS NUMBERS', map: 'MAP & LOCATION', contact: 'CONTACT INFO', whatsapp: 'WHATSAPP WIDGET'
+  };
+  document.getElementById('topbarTitle').textContent = titles[id] || id.toUpperCase();
+  if (window.innerWidth <= 800) document.getElementById('sidebar').classList.remove('open');
+  if (id === 'leads') renderLeads();
+  if (id === 'dashboard') loadDashboard();
+  if (id === 'branding')  loadSection('branding',  applyBranding);
+  if (id === 'hero')      loadSection('hero',       applyHero);
+  if (id === 'about')     loadSection('about',      applyAbout);
+  if (id === 'contact')   loadSection('contact',    applyContact);
+  if (id === 'stats')     loadSection('stats',      applyStats);
+  if (id === 'whatsapp')  loadSection('whatsapp',   applyWhatsApp);
+  if (id === 'map')       loadSection('map',        applyMapPanel);
+  if (id === 'products')  loadSection('products',   applyProducts);
+  if (id === 'clients')   loadSection('clients',    applyClients);
+  if (id === 'testimonials') loadSection('testimonials', applyTestimonials);
+  if (id === 'facility')  loadSection('facility',   applyFacility);
+  if (id === 'gallery')   loadSection('gallery',    applyGallery);
+  if (id === 'before-after') loadSection('beforeafter', applyBeforeAfter);
+}
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+
+/* ─── Modal helpers ─── */
+function openModal(name) { document.getElementById('modal-' + name).classList.add('open'); }
+function closeModal(name) { document.getElementById('modal-' + name).classList.remove('open'); }
+/* modal-bg listeners added in init() */
+
+/* ─── Remove items (UI) ─── */
+function removeItem(el) {
+  const item = el.closest('.list-item') || el;
+  item.style.transition = 'all 0.2s';
+  item.style.opacity = '0';
+  item.style.transform = 'scale(0.95)';
+  setTimeout(() => item.remove(), 200);
+}
+
+/* ─── Generic section loader ─── */
+async function loadSection(section, applyFn) {
   try {
-    const res = await fetch(`${API}/site`);
-    const site = res.ok ? await res.json() : {};
-    applyAll(site);
-  } catch (e) {
-    console.warn('Could not reach backend — running with defaults.', e);
-    applyAll({});
-  }
-  initUI(); // always run UI init regardless
+    const res = await fetch(`${API}/site/${section}`);
+    if (res.ok) { const data = await res.json(); applyFn(data); }
+  } catch (e) { console.warn('Load section failed:', section, e); }
 }
 
-/* ──────────────────────────────────────────────────────
-   APPLY ALL SECTIONS
-────────────────────────────────────────────────────── */
-function applyAll(site) {
-  applyBranding(site.branding || {});
-  applyHero(site.hero || {});
-  applyAbout(site.about || {});
-  applyStats(site.stats || {});
-  applyContact(site.contact || {});
-  applyMap(site.map || {});
-  applyWhatsApp(site.whatsapp || {});
-  applyClients(site.clients || {});
-  applyTestimonials(site.testimonials || {});
-  applyProducts(site.products || {});
-  applyFacility(site.facility || {});
-  applyGallery(site.gallery || {});
-  applyBeforeAfter(site.beforeafter || {});
-}
-
-/* ──────────────────────────────────────────────────────
-   BRANDING
-────────────────────────────────────────────────────── */
-function applyBranding(d) {
-  setText('brandName',       d.companyName   || 'PRAVI');
-  setText('footerBrandName', d.companyName   || 'PRAVI');
-  setText('brandSub',        d.tagline       || 'Technologies');
-  setText('footerTagline',   d.footerTagline || 'Innovative lighting solutions trusted across India since 2012. Your space, brilliantly lit.');
-
-  if (d.pageTitle)    document.getElementById('siteTitle').textContent   = d.pageTitle;
-  if (d.metaDesc)     document.getElementById('siteDesc')?.setAttribute('content', d.metaDesc);
-  if (d.keywords)     document.getElementById('siteKeys')?.setAttribute('content', d.keywords);
-  if (d.color)        document.documentElement.style.setProperty('--accent', d.color);
-  if (d.logo) {
-    // Replace SVG logo with image if provided
-    document.querySelectorAll('.pravi-logo svg').forEach(svg => {
-      const img = document.createElement('img');
-      img.src = d.logo; img.height = 38; img.alt = 'Logo';
-      svg.replaceWith(img);
+/* ─── Generic section saver ─── */
+async function saveSection(section, data, btn) {
+  if (!checkAuth()) return false;
+  setLoading(btn, true);
+  try {
+    const res = await fetch(`${API}/site/${section}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(data)
     });
+    if (!res.ok) throw new Error();
+    showToast('Saved successfully!');
+    return true;
+  } catch {
+    showToast('Save failed — check connection.', true);
+    return false;
+  } finally {
+    setLoading(btn, false);
   }
 }
 
+/* ─── Image upload helper (base64 → backend) ─── */
+function toBase64(file) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve(e.target.result);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+async function uploadImage(file, section, key) {
+  try {
+    const image = await toBase64(file);
+    const res = await fetch(`${API}/images/upload`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ section, key, image })
+    });
+    const data = await res.json();
+    return data.url;
+  } catch { return null; }
+}
+
 /* ──────────────────────────────────────────────────────
-   HERO
+   PUBLISH
 ────────────────────────────────────────────────────── */
+async function publishAll() {
+  if (!checkAuth()) return;
+  const btn = document.querySelector('.btn-publish');
+  setLoading(btn, true);
+  try {
+    await fetch(`${API}/site/publish`, { method: 'POST', headers: authHeaders() });
+    showToast('🚀 Site published! Live changes applied.');
+  } catch { showToast('Publish failed.', true); }
+  finally { setLoading(btn, false); }
+}
+
+/* ══════════════════════════════════════════════════════
+   DASHBOARD
+══════════════════════════════════════════════════════ */
+async function loadDashboard() {
+  if (!checkAuth()) return;
+  try {
+    const [leadsRes, statsRes] = await Promise.all([
+      fetch(`${API}/leads/stats`, { headers: authHeaders() }),
+      fetch(`${API}/site`)
+    ]);
+    if (leadsRes.status === 401) { window.location.href = 'admin-login.html'; return; }
+
+    if (leadsRes.ok) {
+      const s = await leadsRes.json();
+      const el = document.getElementById('dashLeadCount');
+      if (el) el.textContent = s.total || 0;
+    }
+    if (statsRes.ok) {
+      const site = await statsRes.json();
+      const statP = document.getElementById('statProducts');
+      const statG = document.getElementById('statGallery');
+      if (statP && site.products) statP.textContent = (site.products.items || []).length;
+      if (statG && site.gallery)  statG.textContent = (site.gallery.images || []).length;
+    }
+  } catch (e) { console.error('Dashboard:', e); }
+}
+
+/* ══════════════════════════════════════════════════════
+   LEADS
+══════════════════════════════════════════════════════ */
+async function fetchLeads() {
+  if (!checkAuth()) return [];
+  const res = await fetch(`${API}/leads`, { headers: authHeaders() });
+  if (res.status === 401) { window.location.href = 'admin-login.html'; return []; }
+  const data = await res.json();
+  // ✅ backend returns { leads, total, newCount }
+  return Array.isArray(data) ? data : (data.leads || []);
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function renderLeads() {
+  const tbody = document.getElementById('leadsTableBody');
+  const empty = document.getElementById('leadsEmpty');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--muted)"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>`;
+
+  try {
+    const leads = await fetchLeads();
+    const search  = (document.getElementById('leadsSearch') || {}).value || '';
+    const statusF = (document.getElementById('leadsStatusFilter') || {}).value || '';
+
+    let filtered = leads.filter(l => {
+      const s = search.toLowerCase();
+      const matchSearch = !s || (l.name || '').toLowerCase().includes(s) || (l.email || '').toLowerCase().includes(s) || (l.phone || '').includes(s);
+      const matchStatus = !statusF || l.status === statusF;
+      return matchSearch && matchStatus;
+    });
+
+    /* Update counts */
+    const newCount = leads.filter(l => l.status === 'New').length;
+    const countEl = document.getElementById('leadsCount');
+    if (countEl) countEl.textContent = `(${leads.length} total, ${newCount} new)`;
+    const badge = document.getElementById('leadsNavBadge');
+    if (badge) { badge.textContent = leads.length; badge.style.display = leads.length ? 'inline' : 'none'; }
+    const dash = document.getElementById('dashLeadCount');
+    if (dash) dash.textContent = leads.length;
+
+    if (!filtered.length) {
+      tbody.innerHTML = '';
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    const cls = { New: 'new', Contacted: 'contacted', Closed: 'closed' };
+    tbody.innerHTML = filtered.map((l, i) => `
+      <tr>
+        <td style="color:var(--muted)">${i + 1}</td>
+        <td style="font-size:11px;color:var(--muted);white-space:nowrap">${esc(new Date(l.createdAt).toLocaleString('en-IN'))}</td>
+        <td style="font-weight:500">${esc(l.name)}</td>
+        <td>${esc(l.phone)}</td>
+        <td style="color:var(--teal)">${esc(l.email)}</td>
+        <td style="color:var(--muted)">${esc(l.project || '—')}</td>
+        <td title="${esc(l.message)}" style="color:var(--muted);font-size:12px">${esc((l.message || '').substring(0, 40))}${(l.message || '').length > 40 ? '…' : ''}</td>
+        <td><span class="lead-status ${cls[l.status] || 'new'}">${esc(l.status || 'New')}</span></td>
+        <td>
+          <div style="display:flex;gap:5px">
+            <button class="icon-btn" onclick="editLead('${l._id}')"><i class="fa-solid fa-pen"></i></button>
+            <button class="icon-btn del" onclick="deleteLead('${l._id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>`).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:30px;color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i> Failed to load leads.</td></tr>`;
+  }
+}
+
+function filterLeads() { renderLeads(); }
+
+async function editLead(id) {
+  try {
+    const res = await fetch(`${API}/leads/${id}`, { headers: authHeaders() });
+    const l = await res.json();
+    document.getElementById('editLeadId').value    = l._id;
+    document.getElementById('editLeadName').value  = l.name || '';
+    document.getElementById('editLeadPhone').value = l.phone || '';
+    document.getElementById('editLeadEmail').value = l.email || '';
+    document.getElementById('editLeadProject').value = l.project || '';
+    document.getElementById('editLeadMessage').value = l.message || '';
+    document.getElementById('editLeadStatus').value  = l.status || 'New';
+    openModal('lead');
+  } catch { showToast('Could not load lead.', true); }
+}
+
+async function saveLeadEdit() {
+  const id  = document.getElementById('editLeadId').value;
+  const btn = document.querySelector('#modal-lead .btn-save');
+  const body = {
+    name:    document.getElementById('editLeadName').value,
+    phone:   document.getElementById('editLeadPhone').value,
+    email:   document.getElementById('editLeadEmail').value,
+    project: document.getElementById('editLeadProject').value,
+    message: document.getElementById('editLeadMessage').value,
+    status:  document.getElementById('editLeadStatus').value,
+  };
+  setLoading(btn, true);
+  try {
+    const res = await fetch(`${API}/leads/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+    if (!res.ok) throw new Error();
+    closeModal('lead');
+    renderLeads();
+    showToast('Lead updated!');
+  } catch { showToast('Update failed.', true); }
+  finally { setLoading(btn, false); }
+}
+
+async function deleteLead(id) {
+  if (!confirm('Delete this lead? This cannot be undone.')) return;
+  try {
+    await fetch(`${API}/leads/${id}`, { method: 'DELETE', headers: authHeaders() });
+    renderLeads();
+    showToast('Lead deleted.');
+  } catch { showToast('Delete failed.', true); }
+}
+
+async function clearAllLeads() {
+  if (!confirm('Delete ALL leads? This cannot be undone.')) return;
+  try {
+    await fetch(`${API}/leads/all`, { method: 'DELETE', headers: authHeaders() });
+    renderLeads();
+    showToast('All leads cleared.');
+  } catch { showToast('Failed to clear.', true); }
+}
+
+async function downloadLeadsCSV() {
+  try {
+    const leads = await fetchLeads();
+    if (!leads.length) { showToast('No leads to export.'); return; }
+    const headers = ['#', 'Date', 'Name', 'Phone', 'Email', 'Project', 'Message', 'Status'];
+    const rows = leads.map((l, i) => [
+      i + 1,
+      `"${new Date(l.createdAt).toLocaleString('en-IN')}"`,
+      `"${(l.name || '').replace(/"/g, '""')}"`,
+      `"${(l.phone || '').replace(/"/g, '""')}"`,
+      `"${(l.email || '').replace(/"/g, '""')}"`,
+      `"${(l.project || '').replace(/"/g, '""')}"`,
+      `"${(l.message || '').replace(/"/g, '""')}"`,
+      `"${(l.status || '').replace(/"/g, '""')}"`
+    ].join(','));
+    const csv = [headers.join(','), ...rows].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+    a.download = 'pravi_leads.csv';
+    a.click();
+    showToast('CSV downloaded!');
+  } catch { showToast('Export failed.', true); }
+}
+
+/* ══════════════════════════════════════════════════════
+   BRANDING & SEO
+══════════════════════════════════════════════════════ */
+function applyBranding(d) {
+  if (!d) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('bCompanyName', d.companyName);
+  set('bTagline',     d.tagline);
+  set('bPageTitle',   d.pageTitle);
+  set('bMetaDesc',    d.metaDesc);
+  set('bKeywords',    d.keywords);
+  set('bFooterTagline', d.footerTagline);
+  const colorInput = document.getElementById('bColor');
+  const colorText  = document.getElementById('bColorText');
+  if (colorInput) colorInput.value = d.color || '#00c9a7';
+  if (colorText)  colorText.value  = d.color || '#00c9a7';
+  if (d.logo) {
+    const zone = document.getElementById('logoZone');
+    if (zone) { zone.style.backgroundImage = `url(${d.logo})`; zone.style.backgroundSize = 'cover'; }
+  }
+}
+
+async function saveBranding() {
+  const btn = document.querySelector('#panel-branding .btn-save');
+  const logoFile = document.querySelector('#panel-branding input[type=file]')?.files[0];
+  let logo = null;
+  if (logoFile) logo = await uploadImage(logoFile, 'branding', 'logo');
+
+  const data = {
+    companyName:   document.getElementById('bCompanyName')?.value || '',
+    tagline:       document.getElementById('bTagline')?.value || '',
+    pageTitle:     document.getElementById('bPageTitle')?.value || '',
+    metaDesc:      document.getElementById('bMetaDesc')?.value || '',
+    keywords:      document.getElementById('bKeywords')?.value || '',
+    footerTagline: document.getElementById('bFooterTagline')?.value || '',
+    color:         document.getElementById('bColor')?.value || '#00c9a7',
+  };
+  if (logo) data.logo = logo;
+  await saveSection('branding', data, btn);
+}
+
+/* ══════════════════════════════════════════════════════
+   HERO SECTION
+══════════════════════════════════════════════════════ */
 function applyHero(d) {
-  setText('heroEyebrow',    d.eyebrow       || 'Premium Lighting');
-  setText('heroBtnPrimary', d.btnPrimary    || 'Explore Products');
-  setText('heroBtnSecondary', d.btnSecondary || 'Get a Quote');
-  setText('heroDesc',       d.description   || 'Transforming spaces with cutting-edge lighting design.');
-
-  const title = document.getElementById('heroTitle');
-  if (title) {
-    title.innerHTML = `${d.titleLine1 || 'INNOVATIVE'}<br>${d.titleLine2 || 'LIGHTING'}<br><span id="heroTitleAccent">${d.titleLine3Accent || 'SOLUTIONS'}</span>`;
-  }
-
-  if (d.bgImage !== undefined) {
-    const hero = document.getElementById('hero');
-    if (hero) {
-      if (d.bgImage) {
-        hero.style.backgroundImage = `url(${d.bgImage})`;
-        hero.style.backgroundSize = 'cover';
-        hero.style.backgroundPosition = 'center';
-      } else {
-        hero.style.backgroundImage = '';
-      }
-    }
-  } else if (d.bgImage) {
-    const hero = document.getElementById('hero');
-    if (hero) {
-      hero.style.backgroundImage = `url(${d.bgImage})`;
-      hero.style.backgroundSize = 'cover';
-      hero.style.backgroundPosition = 'center';
-    }
+  if (!d) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('hEyebrow',   d.eyebrow);
+  set('hLine1',     d.titleLine1);
+  set('hLine2',     d.titleLine2);
+  set('hLine3',     d.titleLine3Accent);
+  set('hDesc',      d.description);
+  set('hBtnPrimary', d.btnPrimary);
+  set('hBtnSecondary', d.btnSecondary);
+  if (d.bgImage) {
+    const zone = document.getElementById('heroImgZone');
+    if (zone) { zone.style.backgroundImage = `url(${d.bgImage})`; zone.style.backgroundSize = 'cover'; zone.style.backgroundPosition = 'center'; }
   }
 }
 
-/* ──────────────────────────────────────────────────────
-   ABOUT
-────────────────────────────────────────────────────── */
+async function saveHero() {
+  const btn = document.querySelector('#panel-hero .btn-save');
+  const bgFile = document.querySelector('#heroImgZone input')?.files[0];
+  let bgImage = null;
+  if (bgFile) bgImage = await uploadImage(bgFile, 'hero', 'bgImage');
+
+  const data = {
+    eyebrow:       document.getElementById('hEyebrow')?.value || '',
+    titleLine1:    document.getElementById('hLine1')?.value || '',
+    titleLine2:    document.getElementById('hLine2')?.value || '',
+    titleLine3Accent: document.getElementById('hLine3')?.value || '',
+    description:   document.getElementById('hDesc')?.value || '',
+    btnPrimary:    document.getElementById('hBtnPrimary')?.value || '',
+    btnSecondary:  document.getElementById('hBtnSecondary')?.value || '',
+  };
+  if (bgImage) data.bgImage = bgImage;
+  await saveSection('hero', data, btn);
+}
+
+async function removeHeroBg() {
+  if (!confirm('Remove the hero background image? This cannot be undone.')) return;
+  const btn = document.querySelector('#panel-hero .btn-save');
+
+  // Clear the preview zone
+  const zone = document.getElementById('heroImgZone');
+  if (zone) {
+    zone.style.backgroundImage = '';
+    const icon   = zone.querySelector('i');
+    const strong = zone.querySelector('strong');
+    const p      = zone.querySelector('p');
+    const input  = zone.querySelector('input[type=file]');
+    if (icon)   icon.style.display = 'block';
+    if (strong) strong.textContent = 'Upload Hero Image';
+    if (p)      p.textContent = 'Recommended: 1920×1080px, JPG/WebP';
+    if (input)  input.value = '';
+  }
+
+  // Save with bgImage set to empty string
+  const data = {
+    eyebrow:          document.getElementById('hEyebrow')?.value || '',
+    titleLine1:       document.getElementById('hLine1')?.value || '',
+    titleLine2:       document.getElementById('hLine2')?.value || '',
+    titleLine3Accent: document.getElementById('hLine3')?.value || '',
+    description:      document.getElementById('hDesc')?.value || '',
+    btnPrimary:       document.getElementById('hBtnPrimary')?.value || '',
+    btnSecondary:     document.getElementById('hBtnSecondary')?.value || '',
+    bgImage: '',  // ← explicitly clear it
+  };
+
+  await saveSection('hero', data, btn);
+}
+
+function previewUpload(input, zoneId) {
+  if (!input.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
+    zone.style.backgroundImage = `url(${e.target.result})`;
+    zone.style.backgroundSize = 'cover';
+    zone.style.backgroundPosition = 'center';
+    const icon = zone.querySelector('i');
+    const strong = zone.querySelector('strong');
+    const p = zone.querySelector('p');
+    if (icon) icon.style.display = 'none';
+    if (strong) strong.textContent = 'Image selected ✓';
+    if (p) p.textContent = input.files[0].name;
+  };
+  r.readAsDataURL(input.files[0]);
+}
+
+/* ══════════════════════════════════════════════════════
+   ABOUT SECTION
+══════════════════════════════════════════════════════ */
 function applyAbout(d) {
-  setText('aboutEyebrow', d.eyebrow || 'Why Choose Us');
-  setText('aboutDesc',    d.description || '');
-
-  const titleEl = document.getElementById('aboutTitle');
-  if (titleEl) {
-    titleEl.innerHTML = `${d.titleLine1 || 'ILLUMINATE'}<br><span id="aboutTitleAccent">${d.titleLine2Accent || 'YOUR SPACES'}</span>`;
-  }
-
-  // About section images — controlled from admin panel
-  if (d.images) {
-    const card1 = document.getElementById('aboutImg1');
-    const card2 = document.getElementById('aboutImg2');
-    if (card1 && d.images.img1) {
-      card1.innerHTML = `<img src="${d.images.img1}" alt="About Pravi Technologies" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
-    }
-    if (card2 && d.images.img2) {
-      card2.innerHTML = `<img src="${d.images.img2}" alt="About Pravi Technologies" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
-    }
-  }
-
-  if (d.features && d.features.length) {
-    const iconMap = { 0: 'fa-bolt', 1: 'fa-palette', 2: 'fa-shield-halved', 3: 'fa-headset' };
-    const grid = document.getElementById('featuresGrid');
-    if (grid) {
-      grid.innerHTML = d.features.map((f, i) => `
-        <div class="feature-item">
-          <i class="fa-solid ${f.icon || iconMap[i] || 'fa-star'}"></i>
-          <div><h4>${esc(f.title)}</h4><p>${esc(f.desc)}</p></div>
+  if (!d) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('aEyebrow', d.eyebrow);
+  set('aTitle1',  d.titleLine1);
+  set('aTitle2',  d.titleLine2Accent);
+  set('aDesc',    d.description);
+  if (d.features && Array.isArray(d.features)) {
+    const list = document.getElementById('featureList');
+    if (list) {
+      list.innerHTML = d.features.map((f, i) => `
+        <div class="list-item" data-idx="${i}">
+          <i class="drag-handle fa-solid fa-grip-vertical"></i>
+          <div class="list-item-content">
+            <div class="lname">${esc(f.title)}</div>
+            <div class="lsub">${esc(f.desc)}</div>
+          </div>
+          <div class="list-item-actions">
+            <button class="icon-btn" onclick="editFeature(this,${i})"><i class="fa-solid fa-pen"></i></button>
+            <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
+          </div>
         </div>`).join('');
     }
   }
 }
 
-/* ──────────────────────────────────────────────────────
-   COUNTER ANIMATION (top-level so applyStats can call it)
-────────────────────────────────────────────────────── */
-function animateCounter(el) {
-  const target = parseInt(el.dataset.target);
-  if (isNaN(target)) return;
-  el.textContent = '0';
-  const start = performance.now();
-  const update = now => {
-    const progress = Math.min((now - start) / 1800, 1);
-    const eased    = 1 - Math.pow(1 - progress, 3);
-    el.textContent = Math.floor(eased * target);
-    if (progress < 1) requestAnimationFrame(update);
-    else el.textContent = target;
+async function saveAbout() {
+  const btn = document.querySelector('#panel-about .btn-save');
+  const features = [];
+  document.querySelectorAll('#featureList .list-item').forEach(el => {
+    features.push({ title: el.querySelector('.lname').textContent, desc: el.querySelector('.lsub').textContent });
+  });
+  const data = {
+    eyebrow:      document.getElementById('aEyebrow')?.value || '',
+    titleLine1:   document.getElementById('aTitle1')?.value || '',
+    titleLine2Accent: document.getElementById('aTitle2')?.value || '',
+    description:  document.getElementById('aDesc')?.value || '',
+    features,
   };
-  requestAnimationFrame(update);
+  await saveSection('about', data, btn);
 }
 
-/* ──────────────────────────────────────────────────────
-   STATS
-────────────────────────────────────────────────────── */
-function applyStats(d) {
-  const s1 = d.s1 || { num: 500, suffix: '+', label: 'Projects Done' };
-  const s2 = d.s2 || { num: 50,  suffix: '+', label: 'Industry Partners' };
-  const s3 = d.s3 || { num: 12,  suffix: 'yrs', label: 'In Business' };
-  const s4 = d.s4 || { num: 80,  suffix: '%',  label: 'Client Retention' };
-
-  // Hero stats
-  const statP = document.getElementById('statProjects');
-  const statPa = document.getElementById('statPartners');
-  const statY  = document.getElementById('statYears');
-  if (statP)  statP.dataset.target  = s1.num;
-  if (statPa) statPa.dataset.target = s2.num;
-  if (statY)  { statY.dataset.target = s3.num; setText('statYearsSuffix', s3.suffix); }
-  setText('statProjectsLabel', s1.label);
-  setText('statPartnersLabel', s2.label);
-  setText('statYearsLabel',    s3.label);
-
-  // Facility stats bar
-  const sb1 = document.getElementById('sb1');
-  const sb2 = document.getElementById('sb2');
-  const sb3 = document.getElementById('sb3');
-  const sb4 = document.getElementById('sb4');
-  if (sb1) sb1.dataset.target = s1.num;
-  if (sb2) sb2.dataset.target = s2.num;
-  if (sb3) sb3.dataset.target = s3.num;
-  if (sb4) sb4.dataset.target = s4.num;
-  setText('sb1s', s1.suffix); setText('sb1l', s1.label);
-  setText('sb2s', s2.suffix); setText('sb2l', s2.label);
-  setText('sb3s', s3.suffix); setText('sb3l', s3.label);
-  setText('sb4s', s4.suffix); setText('sb4l', s4.label);
-
-  // Re-trigger counter animations now that data-target values are set
-  setTimeout(() => {
-    document.querySelectorAll('[data-target]').forEach(animateCounter);
-  }, 300);
+/* Feature modal */
+let _editingFeatureEl = null;
+function editFeature(el, idx) {
+  _editingFeatureEl = el?.closest('.list-item');
+  const titleEl = _editingFeatureEl?.querySelector('.lname');
+  const descEl  = _editingFeatureEl?.querySelector('.lsub');
+  document.getElementById('fTitle').value = titleEl?.textContent || '';
+  document.getElementById('fDesc').value  = descEl?.textContent  || '';
+  document.getElementById('fIcon').value  = _editingFeatureEl?.dataset?.icon || 'fa-bolt';
+  openModal('feature');
 }
-
-/* ──────────────────────────────────────────────────────
-   CONTACT
-────────────────────────────────────────────────────── */
-function applyContact(d) {
-  const phone   = d.phone   || '+91 98765 43210';
-  const email   = d.email   || 'info@pravitechnologies.com';
-  const address = d.address || 'No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100';
-  const hours   = d.hours   || 'Mon – Sat: 9:00 AM – 6:00 PM';
-
-  setText('contactAddress', address);
-  setText('contactPhone',   phone);
-  setText('contactHours',   hours);
-  setText('mapAddress',     address);
-  setText('mapPhone',       phone);
-  setText('mapHours',       hours);
-  setText('footerPhone',    phone);
-
-  const emailEl = document.getElementById('contactEmail');
-  if (emailEl) { emailEl.textContent = email; emailEl.href = 'mailto:' + email; }
-  const fEmailEl = document.getElementById('footerEmail');
-  if (fEmailEl) { fEmailEl.textContent = email; fEmailEl.href = 'mailto:' + email; }
-
-  // Social links
-  const socials = { socialFb: d.facebook, socialIg: d.instagram, socialLi: d.linkedin, socialYt: d.youtube };
-  Object.entries(socials).forEach(([id, url]) => {
-    const el = document.getElementById(id);
-    if (el && url && url !== '#') { el.href = url; el.style.display = 'flex'; }
-  });
-  // Footer socials
-  const fSocials = { footerFb: d.facebook, footerIg: d.instagram, footerLi: d.linkedin };
-  Object.entries(fSocials).forEach(([id, url]) => {
-    const el = document.getElementById(id);
-    if (el && url && url !== '#') el.href = url;
-  });
-}
-
-/* ──────────────────────────────────────────────────────
-   MAP
-────────────────────────────────────────────────────── */
-function applyMap(d) {
-  if (d.show === false) {
-    const sec = document.getElementById('map-section');
-    if (sec) sec.style.display = 'none';
-    return;
-  }
-  const placeholder = document.getElementById('mapPlaceholder');
-  const container   = document.getElementById('mapIframeContainer');
-  if (!container) return;
-
-  if (d.embedCode) {
-    if (placeholder) placeholder.style.display = 'none';
-    container.style.display = 'block';
-    container.innerHTML = d.embedCode;
-    const iframe = container.querySelector('iframe');
-    if (iframe) { iframe.style.width = '100%'; iframe.style.height = d.height || '420px'; iframe.style.border = 'none'; }
-  } else if (d.embedUrl) {
-    if (placeholder) placeholder.style.display = 'none';
-    container.style.display = 'block';
-    container.innerHTML = `<iframe src="${d.embedUrl}" style="width:100%;height:${d.height || '420px'};border:none;display:block;filter:grayscale(0.3)" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
-  }
-}
-
-/* ──────────────────────────────────────────────────────
-   WHATSAPP
-────────────────────────────────────────────────────── */
-function applyWhatsApp(d) {
-  const float = document.getElementById('wa-float');
-  if (!float) return;
-  if (d.enabled === false) { float.style.display = 'none'; return; }
-  float.style.display = 'flex';
-  if (d.position === 'bottom-left') float.classList.add('wa-left');
-  const tooltip = document.getElementById('wa-tooltip-bubble');
-  if (tooltip) tooltip.textContent = d.tooltip || 'Chat with us on WhatsApp!';
-}
-
-function openWhatsApp() {
-  // Re-fetch from site or use last known data
-  fetch(`${API}/site/whatsapp`).then(r => r.json()).then(d => {
-    const phone = (d.phone || '+919876543210').replace(/[^0-9]/g, '');
-    const msg   = encodeURIComponent(d.message || "Hello Pravi Technologies! I'm interested in your lighting solutions.");
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-  }).catch(() => {
-    window.open('https://wa.me/919876543210', '_blank');
-  });
-}
-
-/* ──────────────────────────────────────────────────────
-   CLIENTS MARQUEE
-────────────────────────────────────────────────────── */
-function applyClients(d) {
-  const marquee = document.getElementById('clientsMarquee');
-  if (!marquee || !d.items || !d.items.length) return;
-  const all = [...d.items, ...d.items]; // duplicate for infinite scroll
-  marquee.innerHTML = all.map(c => {
-    if (c.logo) return `<div class="client-logo"><img src="${c.logo}" alt="${esc(c.name)}" style="height:32px;width:auto;filter:grayscale(1) brightness(0.6);transition:filter 0.3s"/></div>`;
-    return `<div class="client-logo">${esc(c.name)}</div>`;
-  }).join('');
-}
-
-/* ──────────────────────────────────────────────────────
-   TESTIMONIALS CAROUSEL
-────────────────────────────────────────────────────── */
-let _testimonials = [
-  { stars: '★★★★★', text: '"Pravi Technologies transformed our office lighting completely."', initials: 'RK', name: 'Rajesh Kumar', role: 'Facilities Head, Infosys' },
-  { stars: '★★★★★', text: '"Exceptional quality and service from Pravi Technologies."', initials: 'PS', name: 'Priya Sharma', role: 'GM Operations, Prestige Hotels' },
-  { stars: '★★★★☆', text: '"Professional team, on-time delivery, highly recommended!"', initials: 'AM', name: 'Amit Mehta', role: 'Project Head, Brigade Group' },
-];
-let _tCurrent = 0;
-
-function applyTestimonials(d) {
-  if (d.items && d.items.length) _testimonials = d.items;
-  buildTestiDots();
-  setTestimonial(0);
-}
-
-function buildTestiDots() {
-  const dotsEl = document.getElementById('testiDots');
-  if (!dotsEl) return;
-  dotsEl.innerHTML = '';
-  _testimonials.forEach((_, i) => {
-    const dot = document.createElement('div');
-    dot.className = 'dot' + (i === 0 ? ' active' : '');
-    dot.addEventListener('click', () => setTestimonial(i));
-    dotsEl.appendChild(dot);
-  });
-}
-
-function setTestimonial(index) {
-  _tCurrent = (index + _testimonials.length) % _testimonials.length;
-  const t    = _testimonials[_tCurrent];
-  const card = document.getElementById('tCard');
-  if (!card) return;
-  card.style.opacity = '0'; card.style.transform = 'translateY(10px)';
-  setTimeout(() => {
-    card.innerHTML = `
-      <div class="stars">${t.stars || '★★★★★'}</div>
-      <p class="testi-text">${esc(t.text)}</p>
-      <div class="testi-author">
-        <div class="author-avatar">${esc(t.initials || t.name?.slice(0,2) || 'AB')}</div>
-        <div><h4>${esc(t.name)}</h4><p>${esc(t.role)}</p></div>
+function saveFeature() {
+  const title = document.getElementById('fTitle').value;
+  const desc  = document.getElementById('fDesc').value;
+  const icon  = document.getElementById('fIcon').value;
+  if (_editingFeatureEl) {
+    _editingFeatureEl.querySelector('.lname').textContent = title;
+    _editingFeatureEl.querySelector('.lsub').textContent  = desc;
+    _editingFeatureEl.dataset.icon = icon;
+  } else {
+    const list = document.getElementById('featureList');
+    const div  = document.createElement('div');
+    div.className = 'list-item';
+    div.dataset.icon = icon;
+    div.innerHTML = `
+      <i class="drag-handle fa-solid fa-grip-vertical"></i>
+      <div class="list-item-content">
+        <div class="lname">${esc(title)}</div>
+        <div class="lsub">${esc(desc)}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="icon-btn" onclick="editFeature(this)"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
       </div>`;
-    card.style.transition = 'opacity 0.4s, transform 0.4s';
-    card.style.opacity = '1'; card.style.transform = 'translateY(0)';
-    document.querySelectorAll('#testiDots .dot').forEach((d, i) => d.classList.toggle('active', i === _tCurrent));
-  }, 200);
+    list.appendChild(div);
+  }
+  closeModal('feature');
+  _editingFeatureEl = null;
 }
 
-/* ──────────────────────────────────────────────────────
+/* ══════════════════════════════════════════════════════
    PRODUCTS
-────────────────────────────────────────────────────── */
+══════════════════════════════════════════════════════ */
+let _editingProductId = null;
 function applyProducts(d) {
-  if (!d.items || !d.items.length) return;
-  const grid = document.getElementById('productsGrid');
-  if (!grid) return;
-  grid.innerHTML = d.items.map(p => `
-    <div class="product-card" data-category="${esc(p.category || '').toLowerCase()}">
-      <div class="product-img" style="${p.image ? `background-image:url(${p.image});background-size:cover;background-position:center` : 'background:linear-gradient(135deg,#1a2a2a,#0d1f1f)'}"></div>
-      <div class="product-info">
-        <h3>${esc(p.name)}</h3>
-        <p>${esc(p.category)}</p>
-        <a href="${esc(p.link || '#quote')}" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+  if (!d || !d.items) return;
+  const list = document.getElementById('productList');
+  if (!list) return;
+  list.innerHTML = d.items.map((p, i) => `
+    <div class="list-item" data-idx="${i}">
+      <i class="drag-handle fa-solid fa-grip-vertical"></i>
+      <div class="img-thumb" style="width:44px;height:44px;flex-shrink:0;border-radius:6px;overflow:hidden;background:var(--surface3)">
+        ${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover"/>` : '<div class="img-thumb-placeholder"><i class="fa-solid fa-image"></i></div>'}
+      </div>
+      <div class="list-item-content">
+        <div class="lname">${esc(p.name)}</div>
+        <div class="lsub">${esc(p.category)}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="icon-btn" onclick="openEditProduct(${i})"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+  document.getElementById('statProducts').textContent = d.items.length;
+}
+
+function openEditProduct(idx) {
+  _editingProductId = idx;
+  loadSection('products', d => {
+    if (!d || !d.items || idx === null) return;
+    const p = d.items[idx];
+    if (!p) return;
+    document.getElementById('pName').value     = p.name || '';
+    document.getElementById('pCategory').value = p.category || 'Architectural';
+    document.getElementById('pDesc').value     = p.description || '';
+    document.getElementById('pLink').value     = p.link || '#quote';
+    openModal('product');
+  });
+}
+
+async function saveProduct() {
+  const btn = document.querySelector('#modal-product .btn-save');
+
+  try {
+    const imgFile = document.querySelector('#modal-product input[type=file]')?.files[0];
+    let image = null;
+
+    // ✅ Just convert to base64 locally — no separate upload call
+    if (imgFile) {
+      image = await toBase64(imgFile);
+    }
+
+    const newProduct = {
+      name: document.getElementById('pName').value,
+      category: document.getElementById('pCategory').value,
+      description: document.getElementById('pDesc').value,
+      link: document.getElementById('pLink').value || '#quote',
+    };
+
+    if (image) newProduct.image = image;
+
+    let items = [];
+    try {
+      const r = await fetch(`${API}/site/products`);
+      if (r.ok) {
+        const d = await r.json();
+        items = d.items || [];
+      }
+    } catch {}
+
+    if (_editingProductId !== null && items[_editingProductId]) {
+      items[_editingProductId] = { ...items[_editingProductId], ...newProduct };
+    } else {
+      items.push(newProduct);
+    }
+
+    // ✅ pass btn so saveSection handles the spinner
+    const ok = await saveSection('products', { items }, btn);
+
+    if (ok) {
+      closeModal('product');
+      loadSection('products', applyProducts);
+      _editingProductId = null;
+    }
+
+  } catch (e) {
+    setLoading(btn, false);
+    showToast('Something went wrong.', true);
+  }
+}
+
+async function saveProducts() {
+  showToast("⚠️ Use the edit button on each product to save.");
+}
+
+
+
+/* ══════════════════════════════════════════════════════
+   CLIENTS
+══════════════════════════════════════════════════════ */
+function applyClients(d) {
+  if (!d || !d.items) return;
+  const list = document.getElementById('clientList');
+  if (!list) return;
+  list.innerHTML = d.items.map((c, i) => `
+    <div class="list-item" data-idx="${i}">
+      <i class="drag-handle fa-solid fa-grip-vertical"></i>
+      <div class="img-thumb" style="width:44px;height:44px;flex-shrink:0;background:var(--surface3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);overflow:hidden">
+        ${c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;padding:4px"/>` : 'LOGO'}
+      </div>
+      <div class="list-item-content">
+        <div class="lname">${esc(c.name)}</div>
+        <div class="lsub">${c.logo ? 'Has logo' : 'Text only'}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
       </div>
     </div>`).join('');
 }
 
-/* ──────────────────────────────────────────────────────
-   FACILITY SLIDER
-────────────────────────────────────────────────────── */
+async function saveClientModal() {
+  const btn = document.querySelector('#modal-client .btn-save');
+  setLoading(btn, true);
+  try {
+    const name    = document.getElementById('cName').value;
+    const imgFile = document.querySelector('#modal-client input[type=file]')?.files[0];
+    let logo = null;
+    if (imgFile) logo = await uploadImage(imgFile, 'clients', 'logo_' + Date.now());
+
+    let items = [];
+    try {
+      const r = await fetch(`${API}/site/clients`);
+      if (r.ok) { const d = await r.json(); items = d.items || []; }
+    } catch {}
+    items.push({ name, logo });
+
+    const ok = await saveSection('clients', { items }, null);
+    if (ok) { closeModal('client'); loadSection('clients', applyClients); }
+  } finally { setLoading(btn, false); }
+}
+
+async function saveClients() {
+  const btn = document.querySelector('#panel-clients .btn-save');
+  const items = [];
+  document.querySelectorAll('#clientList .list-item').forEach(el => {
+    items.push({ name: el.querySelector('.lname').textContent });
+  });
+  await saveSection('clients', { items }, btn);
+}
+
+/* ══════════════════════════════════════════════════════
+   TESTIMONIALS
+══════════════════════════════════════════════════════ */
+function applyTestimonials(d) {
+  if (!d || !d.items) return;
+  const list = document.getElementById('testiList');
+  if (!list) return;
+  list.innerHTML = d.items.map((t, i) => `
+    <div class="list-item" data-idx="${i}">
+      <i class="drag-handle fa-solid fa-grip-vertical"></i>
+      <div class="list-item-content">
+        <div class="lname">${esc(t.name)} <span style="color:var(--warning)">${t.stars || '★★★★★'}</span></div>
+        <div class="lsub">${esc(t.role)}</div>
+      </div>
+      <div class="list-item-actions">
+        <button class="icon-btn" onclick="openEditTesti(${i})"><i class="fa-solid fa-pen"></i></button>
+        <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
+      </div>
+    </div>`).join('');
+}
+
+let _editingTestiIdx = null;
+function openEditTesti(idx) {
+  _editingTestiIdx = idx;
+  loadSection('testimonials', d => {
+    if (!d || !d.items) return;
+    const t = d.items[idx];
+    if (!t) return;
+    document.getElementById('tName').value     = t.name || '';
+    document.getElementById('tRole').value     = t.role || '';
+    document.getElementById('tStars').value    = t.stars || '★★★★★';
+    document.getElementById('tText').value     = t.text || '';
+    document.getElementById('tInitials').value = t.initials || '';
+    openModal('testi');
+  });
+}
+
+async function saveTestiModal() {
+  const btn = document.querySelector('#modal-testi .btn-save');
+  setLoading(btn, true);
+  try {
+    const newT = {
+      name:     document.getElementById('tName').value,
+      role:     document.getElementById('tRole').value,
+      stars:    document.getElementById('tStars').value,
+      text:     document.getElementById('tText').value,
+      initials: document.getElementById('tInitials').value,
+    };
+
+    let items = [];
+    try {
+      const r = await fetch(`${API}/site/testimonials`);
+      if (r.ok) { const d = await r.json(); items = d.items || []; }
+    } catch {}
+
+    if (_editingTestiIdx !== null && items[_editingTestiIdx]) {
+      items[_editingTestiIdx] = newT;
+    } else {
+      items.push(newT);
+    }
+
+    const ok = await saveSection('testimonials', { items }, null);
+    if (ok) { closeModal('testi'); loadSection('testimonials', applyTestimonials); _editingTestiIdx = null; }
+  } finally { setLoading(btn, false); }
+}
+
+async function saveTestimonials() {
+  const items = [];
+  document.querySelectorAll('#testiList .list-item').forEach(el => {
+    items.push({ name: el.querySelector('.lname').textContent.replace(/★.*/,'').trim(), role: el.querySelector('.lsub').textContent });
+  });
+  await saveSection('testimonials', { items }, document.querySelector('#panel-testimonials .btn-save'));
+}
+
+/* ══════════════════════════════════════════════════════
+   STATS
+══════════════════════════════════════════════════════ */
+function applyStats(d) {
+  if (!d) return;
+  const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  setVal('st1num', d.s1?.num); setVal('st1suf', d.s1?.suffix); setVal('st1lbl', d.s1?.label);
+  setVal('st2num', d.s2?.num); setVal('st2suf', d.s2?.suffix); setVal('st2lbl', d.s2?.label);
+  setVal('st3num', d.s3?.num); setVal('st3suf', d.s3?.suffix); setVal('st3lbl', d.s3?.label);
+  setVal('st4num', d.s4?.num); setVal('st4suf', d.s4?.suffix); setVal('st4lbl', d.s4?.label);
+}
+
+async function saveStats() {
+  const data = {
+    s1: { num: document.getElementById('st1num')?.value, suffix: document.getElementById('st1suf')?.value, label: document.getElementById('st1lbl')?.value },
+    s2: { num: document.getElementById('st2num')?.value, suffix: document.getElementById('st2suf')?.value, label: document.getElementById('st2lbl')?.value },
+    s3: { num: document.getElementById('st3num')?.value, suffix: document.getElementById('st3suf')?.value, label: document.getElementById('st3lbl')?.value },
+    s4: { num: document.getElementById('st4num')?.value, suffix: document.getElementById('st4suf')?.value, label: document.getElementById('st4lbl')?.value },
+  };
+  await saveSection('stats', data, document.querySelector('#panel-stats .btn-save'));
+}
+
+/* ══════════════════════════════════════════════════════
+   MAP
+══════════════════════════════════════════════════════ */
+function applyMapPanel(d) {
+  if (!d) return;
+  const urlEl    = document.getElementById('mapUrl');
+  const iframeEl = document.getElementById('mapIframe');
+  if (urlEl)    urlEl.value    = d.embedUrl || '';
+  if (iframeEl) iframeEl.value = d.embedCode || '';
+  if (d.embedUrl || d.embedCode) previewMap();
+}
+
+function previewMap() {
+  const url    = document.getElementById('mapUrl')?.value;
+  const iframe = document.getElementById('mapIframe')?.value;
+  const preview = document.querySelector('.map-preview');
+  if (!preview) return;
+  if (iframe) {
+    preview.innerHTML = iframe;
+    const el = preview.querySelector('iframe');
+    if (el) { el.style.width = '100%'; el.style.height = '170px'; el.style.border = 'none'; }
+  } else if (url) {
+    preview.innerHTML = `<iframe src="${url}" width="100%" height="170" style="border:none" allowfullscreen loading="lazy"></iframe>`;
+  }
+}
+
+async function saveMap() {
+  const data = {
+    embedUrl:  document.getElementById('mapUrl')?.value || '',
+    embedCode: document.getElementById('mapIframe')?.value || '',
+    show:      document.querySelector('#panel-map .toggle input')?.checked ?? true,
+  };
+  await saveSection('map', data, document.querySelector('#panel-map .btn-save'));
+}
+
+/* ══════════════════════════════════════════════════════
+   CONTACT
+══════════════════════════════════════════════════════ */
+function applyContact(d) {
+  if (!d) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('cPhone',     d.phone);
+  set('cEmail',     d.email);
+  set('cAddress',   d.address);
+  set('cHours',     d.hours);
+  set('cFacebook',  d.facebook);
+  set('cInstagram', d.instagram);
+  set('cLinkedin',  d.linkedin);
+  set('cYoutube',   d.youtube);
+}
+
+async function saveContact() {
+  const data = {
+    phone:     document.getElementById('cPhone')?.value || '',
+    email:     document.getElementById('cEmail')?.value || '',
+    address:   document.getElementById('cAddress')?.value || '',
+    hours:     document.getElementById('cHours')?.value || '',
+    facebook:  document.getElementById('cFacebook')?.value || '',
+    instagram: document.getElementById('cInstagram')?.value || '',
+    linkedin:  document.getElementById('cLinkedin')?.value || '',
+    youtube:   document.getElementById('cYoutube')?.value || '',
+  };
+  await saveSection('contact', data, document.querySelector('#panel-contact .btn-save'));
+}
+
+/* ══════════════════════════════════════════════════════
+   WHATSAPP
+══════════════════════════════════════════════════════ */
+function applyWhatsApp(d) {
+  if (!d) return;
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ''; };
+  set('waPhone',    d.phone);
+  set('waMsg',      d.message);
+  set('waTooltip',  d.tooltip);
+  set('waPosition', d.position);
+  const toggle = document.getElementById('waToggle');
+  if (toggle) toggle.checked = d.enabled !== false;
+  document.getElementById('waPhonePreview').textContent   = d.phone || '';
+  document.getElementById('waTooltipPreview').textContent = d.tooltip || '';
+}
+
+async function saveWhatsApp() {
+  const data = {
+    phone:    document.getElementById('waPhone')?.value || '',
+    message:  document.getElementById('waMsg')?.value   || '',
+    tooltip:  document.getElementById('waTooltip')?.value || '',
+    position: document.getElementById('waPosition')?.value || 'bottom-right',
+    enabled:  document.getElementById('waToggle')?.checked ?? true,
+  };
+  document.getElementById('waPhonePreview').textContent   = data.phone;
+  document.getElementById('waTooltipPreview').textContent = data.tooltip;
+  await saveSection('whatsapp', data, document.querySelector('#panel-whatsapp .btn-save'));
+}
+
+/* waPhone/waTooltip listeners added in init() */
+
+/* ══════════════════════════════════════════════════════
+   FACILITY IMAGES
+══════════════════════════════════════════════════════ */
 function applyFacility(d) {
-  if (!d.images || !d.images.length) return;
-  const slider = document.getElementById('facilitySlider');
-  if (!slider) return;
-  slider.innerHTML = d.images.map(src =>
-    `<div class="facility-slide" style="background-image:url(${src});background-size:cover;background-position:center"></div>`
-  ).join('');
-  // Reinit slider dots
-  initFacilitySlider();
-}
-
-/* ──────────────────────────────────────────────────────
-   GALLERY
-────────────────────────────────────────────────────── */
-function applyGallery(d) {
-  if (!d.images || !d.images.length) return;
-  const grid = document.getElementById('galleryGrid');
+  if (!d || !d.images) return;
+  const grid = document.getElementById('facilityImgGrid');
   if (!grid) return;
-  const sizeClasses = ['tall', '', '', 'wide', '', 'tall', '', ''];
-  grid.innerHTML = d.images.map((item, i) => {
-    const src = item.src || item;
-    const cat = item.category || 'all';
-    const cls = sizeClasses[i % sizeClasses.length];
-    return `<div class="gallery-item ${cls}" data-cat="${esc(cat)}" style="background-image:url(${src});background-size:cover;background-position:center"></div>`;
-  }).join('');
+  // Show stored images
+  const existing = grid.querySelectorAll('.img-thumb[data-stored]');
+  existing.forEach(e => e.remove());
+  d.images.forEach(src => {
+    const div = document.createElement('div');
+    div.className = 'img-thumb';
+    div.dataset.stored = '1';
+    div.innerHTML = `<img src="${src}" alt=""/><button class="img-remove" onclick="removeItem(this.parentNode)"><i class="fa-solid fa-xmark"></i></button>`;
+    grid.insertBefore(div, grid.firstChild);
+  });
 }
 
-/* ──────────────────────────────────────────────────────
-   BEFORE & AFTER
-────────────────────────────────────────────────────── */
-function applyBeforeAfter(d) {
-  if (!d.pairs || !d.pairs.length) return;
-  const container = document.querySelector('#before-after .container');
-  if (!container) return;
-  // Keep section header, replace ba-sets
-  const header = container.querySelector('.section-header');
-  container.innerHTML = '';
-  if (header) container.appendChild(header);
+function handleFacilityUpload(input) {
+  const grid = document.getElementById('facilityImgGrid');
+  Array.from(input.files).forEach(file => {
+    const r = new FileReader();
+    r.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'img-thumb';
+      div.innerHTML = `<img src="${e.target.result}" alt=""/><button class="img-remove" onclick="removeItem(this.parentNode)"><i class="fa-solid fa-xmark"></i></button>`;
+      grid.appendChild(div);
+    };
+    r.readAsDataURL(file);
+  });
+  showToast(`${input.files.length} image(s) added`);
+}
 
+async function saveFacility() {
+  const btn = document.querySelector('#panel-facility .btn-save');
+  setLoading(btn, true);
+  try {
+    const images = [];
+    document.querySelectorAll('#facilityImgGrid .img-thumb img').forEach(img => {
+      images.push(img.src);
+    });
+    await saveSection('facility', { images }, null);
+    showToast('Facility images saved!');
+  } finally { setLoading(btn, false); }
+}
+
+/* ══════════════════════════════════════════════════════
+   GALLERY IMAGES
+══════════════════════════════════════════════════════ */
+function applyGallery(d) {
+  if (!d || !d.images) return;
+  const grid = document.getElementById('galleryImgGrid');
+  if (!grid) return;
+  const existing = grid.querySelectorAll('.img-thumb[data-stored]');
+  existing.forEach(e => e.remove());
+  d.images.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'img-thumb';
+    div.dataset.stored = '1';
+    div.innerHTML = `<img src="${item.src || item}" alt=""/><button class="img-remove" onclick="removeItem(this.parentNode)"><i class="fa-solid fa-xmark"></i></button>`;
+    grid.insertBefore(div, grid.firstChild);
+  });
+}
+
+function handleGalleryUpload(input) {
+  const grid = document.getElementById('galleryImgGrid');
+  const cat  = document.querySelector('#panel-gallery select')?.value || 'residential';
+  Array.from(input.files).forEach(file => {
+    const r = new FileReader();
+    r.onload = e => {
+      const div = document.createElement('div');
+      div.className = 'img-thumb';
+      div.dataset.category = cat;
+      div.innerHTML = `<img src="${e.target.result}" alt=""/><button class="img-remove" onclick="removeItem(this.parentNode)"><i class="fa-solid fa-xmark"></i></button>`;
+      grid.appendChild(div);
+    };
+    r.readAsDataURL(file);
+  });
+  showToast(`${input.files.length} image(s) added`);
+}
+
+async function saveGallery() {
+  const btn = document.querySelector('#panel-gallery .btn-save');
+  setLoading(btn, true);
+  try {
+    const images = [];
+    document.querySelectorAll('#galleryImgGrid .img-thumb img').forEach(img => {
+      images.push({ src: img.src, category: img.closest('.img-thumb')?.dataset.category || 'all' });
+    });
+    await saveSection('gallery', { images }, null);
+    document.getElementById('statGallery').textContent = images.length;
+    showToast('Gallery saved!');
+  } finally { setLoading(btn, false); }
+}
+
+function switchTab(el, filter) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+/* ══════════════════════════════════════════════════════
+   BEFORE & AFTER
+══════════════════════════════════════════════════════ */
+function applyBeforeAfter(d) {
+  if (!d || !d.pairs) return;
+  const list = document.getElementById('baPairList');
+  if (!list) return;
+  // Clear existing dynamic pairs (keep first 2 static ones or replace all)
+  list.innerHTML = '';
   d.pairs.forEach((pair, i) => {
     const div = document.createElement('div');
-    div.className = 'ba-set';
+    div.className = 'ba-pair';
     div.innerHTML = `
-      <p class="ba-set-title">Project ${i + 1}</p>
-      <div class="ba-grid">
-        <div class="ba-card">
-          <div class="ba-img before" style="${pair.before ? `background-image:url(${pair.before});background-size:cover;background-position:center` : ''}"></div>
-          <div class="ba-label">Before</div>
+      <div>
+        <div class="card-title" style="font-size:12px;margin-bottom:8px"><i class="fa-solid fa-circle" style="color:var(--muted)"></i> BEFORE ${i + 1}</div>
+        <div class="upload-zone" style="${pair.before ? `background-image:url(${pair.before});background-size:cover;background-position:center` : ''}">
+          <input type="file" accept="image/*"/>
+          <i class="fa-solid fa-cloud-arrow-up" ${pair.before ? 'style="display:none"' : ''}></i>
+          <strong>${pair.before ? 'Image set ✓' : 'Upload Before'}</strong>
+          <p>${pair.before ? '' : 'Current state'}</p>
         </div>
-        <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-        <div class="ba-card">
-          <div class="ba-img after" style="${pair.after ? `background-image:url(${pair.after});background-size:cover;background-position:center` : ''}"></div>
-          <div class="ba-label teal">After</div>
+      </div>
+      <div class="arr"><i class="fa-solid fa-arrow-right"></i></div>
+      <div>
+        <div class="card-title" style="font-size:12px;margin-bottom:8px"><i class="fa-solid fa-circle" style="color:var(--teal)"></i> AFTER ${i + 1}</div>
+        <div class="upload-zone" style="${pair.after ? `background-image:url(${pair.after});background-size:cover;background-position:center` : ''}">
+          <input type="file" accept="image/*"/>
+          <i class="fa-solid fa-cloud-arrow-up" ${pair.after ? 'style="display:none"' : ''}></i>
+          <strong>${pair.after ? 'Image set ✓' : 'Upload After'}</strong>
+          <p>${pair.after ? '' : 'Transformed result'}</p>
         </div>
       </div>`;
-    container.appendChild(div);
+    list.appendChild(div);
   });
 }
 
-/* ══════════════════════════════════════════════════════
-   QUOTE FORM — sends lead to backend
-══════════════════════════════════════════════════════ */
-async function submitForm() {
-  const name    = document.getElementById('fName')?.value.trim();
-  const phone   = document.getElementById('fPhone')?.value.trim();
-  const email   = document.getElementById('fEmail')?.value.trim();
-  const project = document.getElementById('fProject')?.value;
-  const message = document.getElementById('fMessage')?.value.trim();
+function addBAPair() {
+  const list = document.getElementById('baPairList');
+  const n = list.querySelectorAll('.ba-pair').length + 1;
+  const div = document.createElement('div');
+  div.className = 'ba-pair';
+  div.innerHTML = `
+    <div>
+      <div class="card-title" style="font-size:12px;margin-bottom:8px"><i class="fa-solid fa-circle" style="color:var(--muted)"></i> BEFORE ${n}</div>
+      <div class="upload-zone"><input type="file" accept="image/*"/><i class="fa-solid fa-cloud-arrow-up"></i><strong>Upload Before</strong><p>Current state</p></div>
+    </div>
+    <div class="arr"><i class="fa-solid fa-arrow-right"></i></div>
+    <div>
+      <div class="card-title" style="font-size:12px;margin-bottom:8px"><i class="fa-solid fa-circle" style="color:var(--teal)"></i> AFTER ${n}</div>
+      <div class="upload-zone"><input type="file" accept="image/*"/><i class="fa-solid fa-cloud-arrow-up"></i><strong>Upload After</strong><p>Transformed result</p></div>
+    </div>`;
+  list.appendChild(div);
+  showToast('New pair added!');
+}
 
-  if (!name || !phone || !email) { alert('Please fill in all required fields.'); return; }
-  if (!email.includes('@'))       { alert('Please enter a valid email address.'); return; }
-
-  const btn = document.getElementById('submitBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
-
+async function saveBeforeAfter() {
+  const btn = document.querySelector('#panel-before-after .btn-save');
+  setLoading(btn, true);
   try {
-    // 1. Save lead to backend
-    const res = await fetch(`${API}/leads`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ name, phone, email, project, message }),
-    });
-
-    if (res.ok) {
-      // 2. Send emails via EmailJS
-      try {
-        // Admin notification
-        await emailjs.send('service_a94ptrg', 'template_slycisr', {
-          name:    name,
-          email:   email,
-          phone:   phone,
-          project: project || 'Not specified',
-          message: message || 'No message',
-        });
-
-        // User thank-you
-        await emailjs.send('service_a94ptrg', 'template_tb95gbc', {
-          name:     name,
-          to_email: email,
-          phone:    phone,
-          project:  project || 'Not specified',
-          message:  message || 'No message',
-        });
-      } catch (emailErr) {
-        console.warn('Email failed:', emailErr);
-      }
-
-      // 3. Show success
-      btn.style.display = 'none';
-      const success = document.getElementById('formSuccess');
-      if (success) success.classList.add('visible');
-      ['fName','fPhone','fEmail','fProject','fMessage'].forEach(id => {
-        const el = document.getElementById(id); if (el) el.value = '';
-      });
-
-    } else {
-      btn.disabled = false;
-      btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
-      alert('Failed to send. Please try again.');
+    const pairs = [];
+    const pairEls = document.querySelectorAll('#baPairList .ba-pair');
+    for (const pairEl of pairEls) {
+      const zones    = pairEl.querySelectorAll('.upload-zone');
+      const bImg = zones[0]?.style.backgroundImage?.match(/url\("?([^"]+)"?\)/)?.[1] || '';
+      const aImg = zones[1]?.style.backgroundImage?.match(/url\("?([^"]+)"?\)/)?.[1] || '';
+      const bFile = zones[0]?.querySelector('input[type=file]')?.files[0];
+      const aFile = zones[1]?.querySelector('input[type=file]')?.files[0];
+      let before = bImg, after = aImg;
+      if (bFile) before = await uploadImage(bFile, 'beforeafter', 'b_' + Date.now());
+      if (aFile) after  = await uploadImage(aFile, 'beforeafter', 'a_' + Date.now());
+      pairs.push({ before, after });
     }
-
-  } catch {
-    btn.disabled = false;
-    btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
-    alert('Network error. Please check your connection and try again.');
-  }
+    await saveSection('beforeafter', { pairs }, null);
+    showToast('Before & After saved!');
+  } finally { setLoading(btn, false); }
 }
 
 /* ══════════════════════════════════════════════════════
-   UI INIT — navbar, slider, counters, scroll, etc.
+   LOGOUT
 ══════════════════════════════════════════════════════ */
-function initUI() {
-  /* Navbar scroll */
-  const navbar = document.getElementById('navbar');
-  const scrollTopBtn = document.getElementById('scrollTop');
-  window.addEventListener('scroll', () => {
-    if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 50);
-    if (scrollTopBtn) scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+function logout() {
+  localStorage.removeItem('token');
+  window.location.href = 'admin-login.html';
+}
+
+/* ══════════════════════════════════════════════════════
+   INIT
+══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', async function () {
+  /* Modal close on background click */
+  document.querySelectorAll('.modal-bg').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
   });
 
-  /* Hamburger */
-  const hamburger  = document.getElementById('hamburger');
-  const mobileMenu = document.getElementById('mobileMenu');
-  if (hamburger && mobileMenu) {
-    hamburger.addEventListener('click', () => {
-      hamburger.classList.toggle('active');
-      mobileMenu.classList.toggle('open');
-    });
-    mobileMenu.querySelectorAll('a').forEach(a => {
-      a.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        mobileMenu.classList.remove('open');
-      });
-    });
-  }
+  /* WhatsApp live preview */
+  const waPhone   = document.getElementById('waPhone');
+  const waTooltip = document.getElementById('waTooltip');
+  if (waPhone)   waPhone.addEventListener('input',   function () { const el = document.getElementById('waPhonePreview');   if (el) el.textContent = this.value; });
+  if (waTooltip) waTooltip.addEventListener('input', function () { const el = document.getElementById('waTooltipPreview'); if (el) el.textContent = this.value; });
 
-  /* Scroll to top */
-  if (scrollTopBtn) scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  if (!checkAuth()) return;
+  await loadDashboard();
 
-  /* Counter animation — uses top-level animateCounter() */
-  window._counterObserver = new IntersectionObserver((entries, obs) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.querySelectorAll('[data-target]').forEach(animateCounter);
-        obs.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.3 });
-  const statsBar = document.querySelector('.stats-bar');
-  if (statsBar) window._counterObserver.observe(statsBar);
-
-  /* Facility slider */
-  initFacilitySlider();
-
-  /* Testimonials auto-rotate */
-  const prevBtn = document.getElementById('testiPrev');
-  const nextBtn = document.getElementById('testiNext');
-  if (prevBtn) prevBtn.addEventListener('click', () => setTestimonial(_tCurrent - 1));
-  if (nextBtn) nextBtn.addEventListener('click', () => setTestimonial(_tCurrent + 1));
-  setInterval(() => setTestimonial(_tCurrent + 1), 5000);
-
-  /* Scroll reveal */
-  const revealObs = new IntersectionObserver((entries, obs) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
-  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
-  ['.split-layout', '.product-card', '.stat-block', '.gallery-item', '.ba-card',
-   '.cert-item', '.testimonial-card', '.quote-form-wrapper', '.footer-col',
-   '.footer-brand', '.legal-content', '#map-section .map-embed-wrapper', '#map-section .map-info-strip']
-    .forEach(sel => document.querySelectorAll(sel).forEach((el, i) => {
-      el.classList.add('reveal');
-      el.style.transitionDelay = `${i * 0.08}s`;
-      revealObs.observe(el);
-    }));
-
-  /* Active nav on scroll */
-  const navLinks = document.querySelectorAll('.nav-links a');
-  new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        const id = e.target.getAttribute('id');
-        navLinks.forEach(link => link.classList.toggle('active-link', link.getAttribute('href') === `#${id}`));
-      }
-    });
-  }, { threshold: 0.4 }).observe(document.querySelectorAll('section[id]'));
-
-  /* Hero parallax */
-  window.addEventListener('scroll', () => {
-    const heroLeft = document.querySelector('.hero-left');
-    if (heroLeft && window.scrollY < window.innerHeight) {
-      heroLeft.style.transform = `translateY(${window.scrollY * 0.15}px)`;
+  /* Load badge count */
+  try {
+    const r = await fetch(`${API}/leads/stats`, { headers: authHeaders() });
+    if (r.ok) {
+      const s = await r.json();
+      const badge = document.getElementById('leadsNavBadge');
+      if (badge) { badge.textContent = s.total; badge.style.display = s.total ? 'inline' : 'none'; }
     }
-  });
-}
-
-/* ──────────────────────────────────────────────────────
-   FACILITY SLIDER
-────────────────────────────────────────────────────── */
-function initFacilitySlider() {
-  const slider = document.getElementById('facilitySlider');
-  if (!slider) return;
-  const slides = slider.querySelectorAll('.facility-slide');
-  if (!slides.length) return;
-  const dotsContainer = document.getElementById('facilityDots');
-  let current = 0;
-  let autoplay;
-
-  if (dotsContainer) {
-    dotsContainer.innerHTML = '';
-    slides.forEach((_, i) => {
-      const dot = document.createElement('div');
-      dot.className = 'dot' + (i === 0 ? ' active' : '');
-      dot.addEventListener('click', () => goTo(i));
-      dotsContainer.appendChild(dot);
-    });
-  }
-
-  const goTo = index => {
-    current = (index + slides.length) % slides.length;
-    slider.style.transform = `translateX(-${current * 100}%)`;
-    if (dotsContainer) dotsContainer.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
-  };
-
-  const prevBtn = document.getElementById('facilityPrev');
-  const nextBtn = document.getElementById('facilityNext');
-  if (prevBtn) prevBtn.onclick = () => { goTo(current - 1); clearInterval(autoplay); autoplay = setInterval(() => goTo(current + 1), 4000); };
-  if (nextBtn) nextBtn.onclick = () => { goTo(current + 1); clearInterval(autoplay); autoplay = setInterval(() => goTo(current + 1), 4000); };
-  autoplay = setInterval(() => goTo(current + 1), 4000);
-}
-
-/* ──────────────────────────────────────────────────────
-   GALLERY LIGHTBOX
-────────────────────────────────────────────────────── */
-function openGalleryLightbox() {
-  const lb   = document.getElementById('galleryLightbox');
-  const grid = document.getElementById('lightboxGrid');
-  if (!lb || !grid) return;
-  grid.innerHTML = '';
-  document.querySelectorAll('#galleryGrid .gallery-item').forEach(item => {
-    const clone = document.createElement('div');
-    clone.style.cssText = `aspect-ratio:1;background:${getComputedStyle(item).background};background-size:cover;background-position:center;cursor:pointer;transition:transform 0.2s`;
-    clone.addEventListener('mouseenter', () => clone.style.transform = 'scale(1.02)');
-    clone.addEventListener('mouseleave', () => clone.style.transform = 'scale(1)');
-    grid.appendChild(clone);
-  });
-  lb.style.display = 'block';
-  document.body.style.overflow = 'hidden';
-}
-
-function closeGalleryLightbox() {
-  const lb = document.getElementById('galleryLightbox');
-  if (lb) lb.style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGalleryLightbox(); });
-
-/* ──────────────────────────────────────────────────────
-   UTILITIES
-────────────────────────────────────────────────────── */
-function setText(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = val;
-}
-function esc(str) {
-  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
-
-/* ──────────────────────────────────────────────────────
-   BOOT
-────────────────────────────────────────────────────── */
-document.addEventListener('DOMContentLoaded', bootSite);
+  } catch {}
+});
