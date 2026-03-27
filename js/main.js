@@ -701,3 +701,18 @@ document.querySelectorAll('a').forEach(link => {
     }, 2000);
   });
 });
+// ✅ PAGE LOAD LOADER (FINAL FIX)
+window.addEventListener("load", function () {
+  const loader = document.getElementById("pageLoader");
+
+  if (!loader) return;
+
+  setTimeout(() => {
+    loader.style.opacity = "0";
+
+    setTimeout(() => {
+      loader.style.display = "none";
+    }, 400);
+
+  }, 2000);
+});
