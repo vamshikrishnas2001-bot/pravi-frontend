@@ -1484,3 +1484,88 @@ body {
 #hero::after {
   animation: glowMove 4s ease-in-out infinite;
 }
+
+/* ===========================
+   📱 MOBILE FIX (IMPORTANT)
+=========================== */
+@media (max-width: 768px) {
+
+  /* 🔧 REMOVE LEFT SPACE ISSUE */
+  body, html {
+    overflow-x: hidden;
+  }
+
+  .container {
+    padding: 0 1rem !important;
+  }
+
+  section {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* 🔧 HERO STATS FIX */
+  .hero-stats {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .stat-divider {
+    display: none;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  /* 🔧 CERTIFICATIONS FIX */
+  .cert-strip {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .cert-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* 🔧 FORM WIDTH FIX */
+  .quote-form-wrapper {
+    width: 100%;
+  }
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    width: 100%;
+  }
+
+  /* 🔧 SPLIT LAYOUT FIX */
+  .split-layout {
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  /* 🔧 ABOUT IMAGE CENTER */
+  .about-logo-showcase {
+    margin: 0 auto;
+  }
+
+  /* 🔧 WHATSAPP BUTTON SAFE POSITION */
+  #wa-float {
+    bottom: 5rem;
+    left: 1rem;
+    right: auto;
+  }
+
+  /* 🔧 SCROLL TOP BUTTON */
+  .scroll-top {
+    right: 1rem;
+    bottom: 1rem;
+  }
+
+}
