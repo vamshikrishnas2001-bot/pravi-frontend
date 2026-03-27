@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title id="siteTitle">Pravi Technologies – Innovative Lighting Solutions</title>
+  <meta name="description" id="siteDesc" content="Transforming spaces with cutting-edge LED lighting design. From architectural to decorative — we illuminate your world."/>
+  <meta name="keywords" id="siteKeys" content="LED lighting, Bengaluru, architectural lighting, commercial lighting"/>
+  <link rel="stylesheet" href="css/style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+  <style>
+    /* ===========================
+       MAP SECTION
+       =========================== */
+    #map-section {
+      padding: 6rem 2rem;
+      background: var(--bg-primary);
+    }
+    .map-embed-wrapper {
+      width: 100%;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+    }
+    .map-embed-wrapper iframe {
+      width: 100%;
+      height: 420px;
+      border: none;
+      display: block;
+      filter: grayscale(0.3) invert(0.05);
+    }
+    .map-embed-placeholder {
+      width: 100%;
+      height: 420px;
+      background: var(--bg-card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      color: var(--text-muted);
+      border: 1px dashed var(--border);
+    }
+    .map-embed-placeholder i {
+      font-size: 3rem;
+      color: var(--accent);
+      opacity: 0.4;
+    }
+    .map-embed-placeholder p {
+      font-family: var(--font-ui);
+      font-size: 0.85rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .map-info-strip {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border: 1px solid var(--border);
+      border-top: none;
+      background: var(--bg-card);
+    }
+    .map-info-item {
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-right: 1px solid var(--border);
+    }
+    .map-info-item:last-child { border-right: none; }
+    .map-info-item i {
+      color: var(--accent);
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .map-info-item .mii-label {
+      font-family: var(--font-ui);
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+    .map-info-item .mii-val {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    /* ===========================
+       WHATSAPP FLOATING BUTTON
+       =========================== */
+    #wa-float {
+      position: fixed;
+      bottom: 5rem;
+      right: 2rem;
+      z-index: 998;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.5rem;
+      pointer-events: none;
+    }
+    #wa-float.wa-left {
+      right: auto;
+      left: 2rem;
+      align-items: flex-start;
+    }
+    #wa-tooltip-bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      font-family: var(--font-ui);
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      padding: 0.4rem 0.9rem;
+      white-space: nowrap;
+      opacity: 0;
+      transform: translateX(10px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    #wa-float:hover #wa-tooltip-bubble {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    #wa-btn {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #25d366;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(37,211,102,0.35);
+      transition: transform 0.2s, box-shadow 0.2s;
+      pointer-events: all;
+      position: relative;
+    }
+    #wa-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 28px rgba(37,211,102,0.5);
+    }
+    #wa-btn i {
+      font-size: 1.6rem;
+      color: #fff;
+    }
+    #wa-btn::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 50%;
+      border: 2px solid rgba(37,211,102,0.3);
+      animation: wa-ring 2.5s ease-in-out infinite;
+    }
+    @keyframes wa-ring {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.2); opacity: 0; }
+    }
+
+    /* ===========================
+       ACTIVE NAV LINK
+       =========================== */
+    .nav-links a.active-link {
+      color: var(--accent);
+    }
+    .nav-links a.active-link::after {
+      transform: scaleX(1);
+    }
+
+    /* ===========================
+       BEFORE & AFTER — enhanced
+       =========================== */
+    .ba-set {
+      margin-bottom: 3rem;
+    }
+    .ba-set-title {
+      font-family: var(--font-ui);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    /* ===========================
+       CLIENTS — logo image support
+       =========================== */
+    .client-logo img {
+      height: 32px;
+      width: auto;
+      filter: grayscale(1) brightness(0.6);
+      transition: filter 0.3s;
+    }
+    .client-logo:hover img {
+      filter: grayscale(0) brightness(1);
+    }
+
+    /* ===========================
+       SCROLL TOP — shift left when WA exists
+       =========================== */
+    .scroll-top {
+      bottom: 2rem;
+      right: 2rem;
+    }
+
+    /* ===========================
+       RESPONSIVE ADDITIONS
+       =========================== */
+    @media (max-width: 768px) {
+      .map-info-strip { grid-template-columns: 1fr; }
+      .map-info-item { border-right: none; border-bottom: 1px solid var(--border); }
+      .map-info-item:last-child { border-bottom: none; }
+      .map-embed-wrapper iframe { height: 280px; }
+      #wa-float { bottom: 4.5rem; right: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#" class="pravi-logo" id="navLogo">
+        <img src="logo.jpeg" alt="Pravi Technologies" style="height:48px; width:auto; object-fit:contain;">
+        <div class="pravi-logo-text">
+          <span class="pravi-name" id="brandName">PRAVI</span>
+          <span class="pravi-sub" id="brandSub">Technologies</span>
+        </div>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#products">Products</a></li>
+        <li><a href="#facility">Facility</a></li>
+        <li><a href="#gallery">Gallery</a></li>
+        <li><a href="#clients">Clients</a></li>
+        <li><a href="#map-section">Find Us</a></li>
+        <li><a href="#quote" class="nav-cta">Get a Quote</a></li>
+      </ul>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#about">About</a>
+      <a href="#products">Products</a>
+      <a href="#facility">Facility</a>
+      <a href="#gallery">Gallery</a>
+      <a href="#clients">Clients</a>
+      <a href="#map-section">Find Us</a>
+      <a href="#quote">Get a Quote</a>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section id="hero">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-content">
+      <div class="hero-left">
+        <p class="hero-eyebrow" id="heroEyebrow">Premium Lighting</p>
+        <h1 class="hero-title" id="heroTitle">INNOVATIVE<br>LIGHTING<br><span id="heroTitleAccent">SOLUTIONS</span></h1>
+        <p class="hero-desc" id="heroDesc">Transforming spaces with cutting-edge lighting design. From architectural to decorative — we illuminate your world.</p>
+        <div class="hero-btns">
+          <a href="#products" class="btn-primary" id="heroBtnPrimary">Explore Products</a>
+          <a href="#quote" class="btn-outline" id="heroBtnSecondary">Get a Quote</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat"><span class="stat-num" data-target="500" id="statProjects">0</span><span>+</span><p id="statProjectsLabel">Projects</p></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-num" data-target="50" id="statPartners">0</span><span>+</span><p id="statPartnersLabel">Partners</p></div>
+          <div class="stat-divider"></div>
+          <div class="stat"><span class="stat-num" data-target="12" id="statYears">0</span><span id="statYearsSuffix">yrs</span><p id="statYearsLabel">Experience</p></div>
+        </div>
+      </div>
+      <div class="hero-image">
+        <div class="hero-img-wrapper"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about">
+    <div class="container split-layout">
+      <div class="split-media">
+        <div class="about-img-grid">
+          <div class="about-img-card large" style="background:linear-gradient(135deg,#1a2a2a,#0d1f1f)">
+            <div class="light-ring"></div>
+          </div>
+          <div class="about-img-card small" style="background:linear-gradient(135deg,#0f1e1e,#162828)">
+            <div class="pendant-light"></div>
+          </div>
+        </div>
+      </div>
+      <div class="split-text">
+        <p class="section-eyebrow" id="aboutEyebrow">Why Choose Us</p>
+        <h2 class="section-title" id="aboutTitle">ILLUMINATE<br><span id="aboutTitleAccent">YOUR SPACES</span></h2>
+        <p class="section-desc" id="aboutDesc">We specialize in bespoke lighting solutions that blend form and function. Our designs enhance ambiance, improve energy efficiency, and create immersive environments.</p>
+        <div class="features-grid" id="featuresGrid">
+          <div class="feature-item">
+            <i class="fa-solid fa-bolt"></i>
+            <div><h4>Energy Efficient</h4><p>LED-based solutions cutting energy costs by up to 70%.</p></div>
+          </div>
+          <div class="feature-item">
+            <i class="fa-solid fa-palette"></i>
+            <div><h4>Custom Designs</h4><p>Tailor-made fixtures matching your aesthetic vision.</p></div>
+          </div>
+          <div class="feature-item">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div><h4>Certified Quality</h4><p>ISO-certified products with long-term warranties.</p></div>
+          </div>
+          <div class="feature-item">
+            <i class="fa-solid fa-headset"></i>
+            <div><h4>24/7 Support</h4><p>Dedicated support team for installations and queries.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRODUCTS ===== -->
+  <section id="products">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">What We Offer</p>
+        <h2 class="section-title">OUR <span>PRODUCTS</span></h2>
+      </div>
+      <div class="products-grid" id="productsGrid">
+        <div class="product-card" data-category="architectural">
+          <div class="product-img p1"></div>
+          <div class="product-info">
+            <h3>Track Lighting</h3>
+            <p>Architectural</p>
+            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <div class="product-card" data-category="decorative">
+          <div class="product-img p2"></div>
+          <div class="product-info">
+            <h3>LED Strip Systems</h3>
+            <p>Decorative</p>
+            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <div class="product-card" data-category="outdoor">
+          <div class="product-img p3"></div>
+          <div class="product-info">
+            <h3>Flood Lights</h3>
+            <p>Outdoor</p>
+            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <div class="product-card" data-category="indoor">
+          <div class="product-img p4"></div>
+          <div class="product-info">
+            <h3>Pendant Lights</h3>
+            <p>Indoor</p>
+            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <div class="product-card" data-category="architectural">
+          <div class="product-img p5"></div>
+          <div class="product-info">
+            <h3>Frame Panels</h3>
+            <p>Architectural</p>
+            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+        <div class="product-card" data-category="commercial">
+          <div class="product-img p6"></div>
+          <div class="product-info">
+            <h3>Commercial Fixtures</h3>
+            <p>Commercial</p>
+            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FACILITY ===== -->
+  <section id="facility">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">Our Infrastructure</p>
+        <h2 class="section-title">OUR <span>FACILITY</span></h2>
+      </div>
+      <div class="facility-slider-wrapper">
+        <div class="facility-slider" id="facilitySlider">
+          <div class="facility-slide fs1"></div>
+          <div class="facility-slide fs2"></div>
+          <div class="facility-slide fs3"></div>
+          <div class="facility-slide fs4"></div>
+        </div>
+        <button class="slider-btn prev" id="facilityPrev"><i class="fa-solid fa-chevron-left"></i></button>
+        <button class="slider-btn next" id="facilityNext"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="slider-dots" id="facilityDots"></div>
+      </div>
+      <div class="stats-bar">
+        <div class="stat-block">
+          <span class="stat-big" data-target="500" id="sb1">0</span><span class="stat-plus" id="sb1s">+</span>
+          <p id="sb1l">Projects Done</p>
+        </div>
+        <div class="stat-block">
+          <span class="stat-big" data-target="50" id="sb2">0</span><span class="stat-plus" id="sb2s">+</span>
+          <p id="sb2l">Industry Partners</p>
+        </div>
+        <div class="stat-block">
+          <span class="stat-big" data-target="12" id="sb3">0</span><span class="stat-plus" id="sb3s">yrs</span>
+          <p id="sb3l">In Business</p>
+        </div>
+        <div class="stat-block">
+          <span class="stat-big" data-target="80" id="sb4">0</span><span class="stat-plus" id="sb4s">%</span>
+          <p id="sb4l">Client Retention</p>
+        </div>
+      </div>
+      <p class="facility-tagline">LIGHTING THE FUTURE — ONE SPACE AT A TIME. — PRAVI TECHNOLOGIES</p>
+    </div>
+  </section>
+
+  <!-- ===== GALLERY ===== -->
+  <section id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">Our Work</p>
+        <h2 class="section-title">PROJECT <span>GALLERY</span></h2>
+      </div>
+      <div class="gallery-masonry" id="galleryGrid">
+        <div class="gallery-item tall" data-cat="residential"></div>
+        <div class="gallery-item" data-cat="commercial"></div>
+        <div class="gallery-item" data-cat="outdoor"></div>
+        <div class="gallery-item wide" data-cat="commercial"></div>
+        <div class="gallery-item" data-cat="residential"></div>
+        <div class="gallery-item tall" data-cat="outdoor"></div>
+        <div class="gallery-item" data-cat="commercial"></div>
+        <div class="gallery-item" data-cat="residential"></div>
+      </div>
+      <div class="gallery-cta">
+        <button class="btn-primary" onclick="openGalleryLightbox()">View All Projects</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== GALLERY LIGHTBOX ===== -->
+  <div id="galleryLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:2000;overflow-y:auto;">
+    <div style="position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(8,13,13,0.95);border-bottom:1px solid rgba(0,201,167,0.15);">
+      <span style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#00c9a7;letter-spacing:2px;">ALL PROJECTS</span>
+      <button onclick="closeGalleryLightbox()" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#e0efed;font-size:1.2rem;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
+    </div>
+    <div id="lightboxGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px;padding:4px;"></div>
+  </div>
+
+  <!-- ===== BEFORE & AFTER ===== -->
+  <section id="before-after">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">Transformation</p>
+        <h2 class="section-title">BEFORE <span>&amp; AFTER</span></h2>
+      </div>
+
+      <!-- Pair 1 -->
+      <div class="ba-set">
+        <p class="ba-set-title">Project 1</p>
+        <div class="ba-grid">
+          <div class="ba-card">
+            <div class="ba-img before b1" id="baB1"></div>
+            <div class="ba-label">Before</div>
+          </div>
+          <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="ba-card">
+            <div class="ba-img after a1" id="baA1"></div>
+            <div class="ba-label teal">After</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pair 2 -->
+      <div class="ba-set">
+        <p class="ba-set-title">Project 2</p>
+        <div class="ba-grid">
+          <div class="ba-card">
+            <div class="ba-img before b2" id="baB2"></div>
+            <div class="ba-label">Before</div>
+          </div>
+          <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+          <div class="ba-card">
+            <div class="ba-img after a2" id="baA2"></div>
+            <div class="ba-label teal">After</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CERTIFICATIONS ===== -->
+  <section id="certifications">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">Verified</p>
+        <h2 class="section-title">OUR <span>CERTIFICATIONS</span></h2>
+      </div>
+      <div class="cert-strip">
+        <div class="cert-item"><i class="fa-solid fa-certificate"></i><p>ISO 9001</p></div>
+        <div class="cert-item"><i class="fa-solid fa-award"></i><p>CE Certified</p></div>
+        <div class="cert-item"><i class="fa-solid fa-medal"></i><p>RoHS Compliant</p></div>
+        <div class="cert-item"><i class="fa-solid fa-star"></i><p>UL Listed</p></div>
+        <div class="cert-item"><i class="fa-solid fa-shield"></i><p>BIS Approved</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CLIENTS ===== -->
+  <section id="clients">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">Trusted By</p>
+        <h2 class="section-title">OUR <span>CLIENTS</span></h2>
+      </div>
+      <div class="clients-marquee-wrapper">
+        <div class="clients-marquee" id="clientsMarquee">
+          <div class="client-logo">INFOSYS</div>
+          <div class="client-logo">WIPRO</div>
+          <div class="client-logo">TATA GROUP</div>
+          <div class="client-logo">PRESTIGE</div>
+          <div class="client-logo">BRIGADE</div>
+          <div class="client-logo">SOBHA</div>
+          <div class="client-logo">L&amp;T</div>
+          <div class="client-logo">GODREJ</div>
+          <!-- duplicated for seamless marquee -->
+          <div class="client-logo">INFOSYS</div>
+          <div class="client-logo">WIPRO</div>
+          <div class="client-logo">TATA GROUP</div>
+          <div class="client-logo">PRESTIGE</div>
+          <div class="client-logo">BRIGADE</div>
+          <div class="client-logo">SOBHA</div>
+          <div class="client-logo">L&amp;T</div>
+          <div class="client-logo">GODREJ</div>
+        </div>
+      </div>
+
+      <!-- Testimonials Carousel -->
+      <div class="testimonials">
+        <div class="testimonial-card active" id="tCard">
+          <div class="stars">★★★★★</div>
+          <p class="testi-text">"Pravi Technologies transformed our office lighting completely. The custom LED solutions boosted productivity and the team's morale noticeably improved."</p>
+          <div class="testi-author">
+            <div class="author-avatar">RK</div>
+            <div>
+              <h4>Rajesh Kumar</h4>
+              <p>Facilities Head, Infosys</p>
+            </div>
+          </div>
+        </div>
+        <div class="testi-controls">
+          <button class="testi-btn" id="testiPrev"><i class="fa-solid fa-chevron-left"></i></button>
+          <div class="testi-dots" id="testiDots"></div>
+          <button class="testi-btn" id="testiNext"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== MAP / FIND US ===== -->
+  <section id="map-section">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-eyebrow">Visit Us</p>
+        <h2 class="section-title">FIND <span>US</span></h2>
+      </div>
+      <div class="map-embed-wrapper" id="mapWrapper">
+        <!-- Placeholder — admin replaces with real embed -->
+        <div class="map-embed-placeholder" id="mapPlaceholder">
+          <i class="fa-solid fa-map-location-dot"></i>
+          <p>Map embed — set from Admin Panel</p>
+        </div>
+        <!-- Real embed injected by admin data -->
+        <div id="mapIframeContainer" style="display:none"></div>
+      </div>
+      <div class="map-info-strip">
+        <div class="map-info-item">
+          <i class="fa-solid fa-location-dot"></i>
+          <div>
+            <div class="mii-label">Address</div>
+            <div class="mii-val" id="mapAddress">No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100</div>
+          </div>
+        </div>
+        <div class="map-info-item">
+          <i class="fa-solid fa-phone"></i>
+          <div>
+            <div class="mii-label">Phone</div>
+            <div class="mii-val" id="mapPhone">+91 98765 43210</div>
+          </div>
+        </div>
+        <div class="map-info-item">
+          <i class="fa-solid fa-clock"></i>
+          <div>
+            <div class="mii-label">Working Hours</div>
+            <div class="mii-val" id="mapHours">Mon – Sat: 9:00 AM – 6:00 PM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== REQUEST A QUOTE ===== -->
+  <section id="quote">
+    <div class="container split-layout">
+      <div class="quote-info">
+        <p class="section-eyebrow">Get in Touch</p>
+        <h2 class="section-title">REQUEST A<br><span>QUOTE</span></h2>
+        <div class="contact-details">
+          <div class="contact-item"><i class="fa-solid fa-location-dot"></i><p id="contactAddress">No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100</p></div>
+          <div class="contact-item"><i class="fa-solid fa-phone"></i><p id="contactPhone">+91 98765 43210</p></div>
+          <div class="contact-item"><i class="fa-solid fa-envelope"></i><p><a id="contactEmail" href="mailto:info@pravitechnologies.in">info@pravitechnologies.in</a></p></div>
+          <div class="contact-item"><i class="fa-solid fa-clock"></i><p id="contactHours">Mon – Sat: 9:00 AM – 6:00 PM</p></div>
+        </div>
+        <div class="social-links" id="socialLinks">
+          <a href="#" id="socialFb"><i class="fa-brands fa-facebook"></i></a>
+          <a href="#" id="socialIg"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" id="socialLi"><i class="fa-brands fa-linkedin"></i></a>
+          <a href="#" id="socialYt"><i class="fa-brands fa-youtube"></i></a>
+        </div>
+      </div>
+      <div class="quote-form-wrapper">
+        <div class="quote-form" id="quoteForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Full Name *</label>
+              <input type="text" placeholder="John Doe" id="fName"/>
+            </div>
+            <div class="form-group">
+              <label>Phone *</label>
+              <input type="tel" placeholder="+91 XXXXX XXXXX" id="fPhone"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Email Address *</label>
+            <input type="email" placeholder="you@email.com" id="fEmail"/>
+          </div>
+          <div class="form-group">
+            <label>Project Type</label>
+            <select id="fProject">
+              <option value="">Select project type</option>
+              <option>Residential</option>
+              <option>Commercial</option>
+              <option>Industrial</option>
+              <option>Outdoor / Landscape</option>
+              <option>Hospitality</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Message</label>
+            <textarea placeholder="Describe your lighting requirements..." id="fMessage" rows="4"></textarea>
+          </div>
+          <button class="btn-primary full-width" id="submitBtn" onclick="submitForm()">
+            Send Request <i class="fa-solid fa-paper-plane"></i>
+          </button>
+          <p class="form-success" id="formSuccess">✅ Thanks! We'll get back to you within 24 hours.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="pravi-logo">
+            <img src="logo.jpeg" alt="Pravi Technologies" style="height:48px; width:auto; object-fit:contain;">
+            <div class="pravi-logo-text">
+              <span class="pravi-name" id="footerBrandName">PRAVI</span>
+              <span class="pravi-sub">Technologies</span>
+            </div>
+          </a>
+          <p id="footerTagline">Innovative lighting solutions trusted across India since 2012. Your space, brilliantly lit.</p>
+          <div class="social-links">
+            <a href="#" id="footerFb"><i class="fa-brands fa-facebook"></i></a>
+            <a href="#" id="footerIg"><i class="fa-brands fa-instagram"></i></a>
+            <a href="#" id="footerLi"><i class="fa-brands fa-linkedin"></i></a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#products">Products</a></li>
+            <li><a href="#facility">Facility</a></li>
+            <li><a href="#gallery">Gallery</a></li>
+            <li><a href="#clients">Clients</a></li>
+            <li><a href="#map-section">Find Us</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Products</h4>
+          <ul>
+            <li><a href="#">Track Lighting</a></li>
+            <li><a href="#">LED Strips</a></li>
+            <li><a href="#">Pendant Lights</a></li>
+            <li><a href="#">Flood Lights</a></li>
+            <li><a href="#">Frame Panels</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><i class="fa-solid fa-phone"></i> <span id="footerPhone">+91 98765 43210</span></li>
+            <li><i class="fa-solid fa-envelope"></i> <a id="footerEmail" href="mailto:info@pravitechnologies.in">info@pravitechnologies.in</a></li>
+            <li><i class="fa-solid fa-location-dot"></i> Bengaluru, India</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footerCopyright">© 2024 Pravi Technologies. All rights reserved.</p>
+        <div class="footer-legal">
+          <a href="#privacy">Privacy Policy</a>
+          <a href="#terms">Terms of Service</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== PRIVACY POLICY ===== -->
+  <section id="privacy" class="legal-section">
+    <div class="container">
+      <h2 class="section-title">PRIVACY <span>POLICY</span></h2>
+      <div class="legal-content">
+        <p><strong>Effective Date:</strong> January 1, 2024</p>
+        <p>Pravi Technologies ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website.</p>
+        <h3>Information We Collect</h3>
+        <p>We may collect personal information such as your name, email address, phone number, and project details when you fill out our contact or quote request form.</p>
+        <h3>How We Use Your Information</h3>
+        <p>Your information is used solely to respond to your inquiries, process quote requests, and improve our services. We do not sell or share your data with third parties without your consent.</p>
+        <h3>Data Security</h3>
+        <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
+        <h3>Contact Us</h3>
+        <p>For any privacy-related concerns, contact us at <a href="mailto:info@pravitechnologies.in">info@pravitechnologies.in</a>.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== TERMS OF SERVICE ===== -->
+  <section id="terms" class="legal-section">
+    <div class="container">
+      <h2 class="section-title">TERMS OF <span>SERVICE</span></h2>
+      <div class="legal-content">
+        <p><strong>Effective Date:</strong> January 1, 2024</p>
+        <p>By accessing and using this website, you accept and agree to be bound by the following terms and conditions.</p>
+        <h3>Use of Website</h3>
+        <p>This website is intended for informational purposes and to facilitate quote requests. Unauthorized use of this website may give rise to a claim for damages.</p>
+        <h3>Intellectual Property</h3>
+        <p>All content on this website, including text, graphics, logos, and images, is the property of Pravi Technologies and protected by applicable intellectual property laws.</p>
+        <h3>Limitation of Liability</h3>
+        <p>Pravi Technologies shall not be liable for any indirect, incidental, or consequential damages arising from the use of this website or our products.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SCROLL TO TOP ===== -->
+  <button class="scroll-top" id="scrollTop"><i class="fa-solid fa-chevron-up"></i></button>
+
+  <!-- ===== WHATSAPP FLOATING BUTTON ===== -->
+  <div id="wa-float">
+    <div id="wa-tooltip-bubble">Chat with us on WhatsApp!</div>
+    <button id="wa-btn" onclick="openWhatsApp()" aria-label="Chat on WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i>
+    </button>
+  </div>
+
+  <!-- ===== SCRIPTS ===== -->
+  <script src="js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('q72zrqwbWd5q_ygD4');</script>
+  <div class="dev-footer">
+  © 2026 Pravi Technologies. All rights reserved.<br>
+  🚀 Designed & Developed by <strong>Vamshi Krishna S</strong><br>
+  📞 <a href="tel:8970437122">8970437122</a> |
+  ✉️ <a href="mailto:vamshikrishna@pravitechnologies.in">vamshikrishna@pravitechnologies.in</a>
+</div>
+</body>
+</html>
