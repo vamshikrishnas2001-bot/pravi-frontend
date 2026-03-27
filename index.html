@@ -287,12 +287,13 @@
   <section id="about">
     <div class="container split-layout">
       <div class="split-media">
-        <div class="about-img-grid">
-          <div class="about-img-card large" style="background:linear-gradient(135deg,#1a2a2a,#0d1f1f)">
-            <div class="light-ring"></div>
+        <div class="about-img-grid" id="aboutImgGrid">
+          <!-- Images loaded from admin panel via /api/content -->
+          <div class="about-img-card large" id="aboutImg1">
+            <div class="about-img-placeholder"><i class="fa-solid fa-image"></i></div>
           </div>
-          <div class="about-img-card small" style="background:linear-gradient(135deg,#0f1e1e,#162828)">
-            <div class="pendant-light"></div>
+          <div class="about-img-card small" id="aboutImg2">
+            <div class="about-img-placeholder"><i class="fa-solid fa-image"></i></div>
           </div>
         </div>
       </div>
@@ -615,7 +616,7 @@
         <div class="contact-details">
           <div class="contact-item"><i class="fa-solid fa-location-dot"></i><p id="contactAddress">No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100</p></div>
           <div class="contact-item"><i class="fa-solid fa-phone"></i><p id="contactPhone">+91 98765 43210</p></div>
-          <div class="contact-item"><i class="fa-solid fa-envelope"></i><p><a id="contactEmail" href="mailto:info@pravitechnologies.in">info@pravitechnologies.in</a></p></div>
+          <div class="contact-item"><i class="fa-solid fa-envelope"></i><p><a id="contactEmail" href="/cdn-cgi/l/email-protection#5e373038311e2e2c3f28372a3b3d363031323139373b2d703730"><span class="__cf_email__" data-cfemail="177e79717857676576617e6372747f79787b78707e7264397e79">[email&#160;protected]</span></a></p></div>
           <div class="contact-item"><i class="fa-solid fa-clock"></i><p id="contactHours">Mon – Sat: 9:00 AM – 6:00 PM</p></div>
         </div>
         <div class="social-links" id="socialLinks">
@@ -709,7 +710,7 @@
           <h4>Contact</h4>
           <ul>
             <li><i class="fa-solid fa-phone"></i> <span id="footerPhone">+91 98765 43210</span></li>
-            <li><i class="fa-solid fa-envelope"></i> <a id="footerEmail" href="mailto:info@pravitechnologies.in">info@pravitechnologies.in</a></li>
+            <li><i class="fa-solid fa-envelope"></i> <a id="footerEmail" href="/cdn-cgi/l/email-protection#1f767179705f6f6d7e69766b7a7c777170737078767a6c317671"><span class="__cf_email__" data-cfemail="acc5c2cac3ecdcdecddac5d8c9cfc4c2c3c0c3cbc5c9df82c5c2">[email&#160;protected]</span></a></li>
             <li><i class="fa-solid fa-location-dot"></i> Bengaluru, India</li>
           </ul>
         </div>
@@ -738,7 +739,7 @@
         <h3>Data Security</h3>
         <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
         <h3>Contact Us</h3>
-        <p>For any privacy-related concerns, contact us at <a href="mailto:info@pravitechnologies.in">info@pravitechnologies.in</a>.</p>
+        <p>For any privacy-related concerns, contact us at <a href="/cdn-cgi/l/email-protection#70191e161f300002110619041513181e1f1c1f171915035e191e"><span class="__cf_email__" data-cfemail="71181f171e310103100718051412191f1e1d1e161814025f181f">[email&#160;protected]</span></a>.</p>
       </div>
     </div>
   </section>
@@ -771,15 +772,34 @@
     </button>
   </div>
 
+  <!-- ===== ABOUT IMAGES — self-contained, independent of main.js ===== -->
+  <script>
+    (function () {
+      function applyAboutImages(imgs) {
+        if (!imgs) return;
+        var card1 = document.getElementById('aboutImg1');
+        var card2 = document.getElementById('aboutImg2');
+        if (card1 && imgs.img1) {
+          card1.innerHTML = '<img src="' + imgs.img1 + '" alt="About Pravi Technologies" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>';
+        }
+        if (card2 && imgs.img2) {
+          card2.innerHTML = '<img src="' + imgs.img2 + '" alt="About Pravi Technologies" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>';
+        }
+      }
+
+      // Fetch content independently — does NOT interfere with main.js
+      fetch('/api/content')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if (data && data.about && data.about.images) {
+            applyAboutImages(data.about.images);
+          }
+        })
+        .catch(function(){
+          // Silently fail — placeholders stay visible
+        });
+    })();
+  </script>
+
   <!-- ===== SCRIPTS ===== -->
-  <script src="js/main.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-<script>emailjs.init('q72zrqwbWd5q_ygD4');</script>
-  <div class="dev-footer">
-  © 2026 Pravi Technologies. All rights reserved.<br>
-  🚀 Designed & Developed by <strong>Vamshi Krishna S</strong><br>
-  📞 <a href="tel:8970437122">8970437122</a> |
-  ✉️ <a href="mailto:vamshikrishna@pravitechnologies.in">vamshikrishna@pravitechnologies.in</a>
-</div>
-</body>
-</html>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/c
