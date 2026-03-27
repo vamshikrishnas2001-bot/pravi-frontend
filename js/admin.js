@@ -1,3 +1,21 @@
+// 🔒 ADMIN PROTECTION (FINAL)
+async function checkAuth() {
+  try {
+    const res = await fetch("https://https://pravi-backend.onrender.com/api/admin/dashboard", {
+      method: "GET",
+      credentials: "include"
+    });
+
+    if (res.status !== 200) {
+      window.location.href = "admin-login.html";
+    }
+
+  } catch (err) {
+    window.location.href = "admin-login.html";
+  }
+}
+
+checkAuth();
 /* ═══════════════════════════════════════════════════════
    PRAVI ADMIN PANEL — FULL BACKEND INTEGRATION
    Every panel → reads from & saves to MongoDB via Render
