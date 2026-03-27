@@ -1373,21 +1373,3 @@ body {
 .dev-footer strong {
   color: #0bbfa0;
 }
-
-.gallery-item {
-  position: relative;
-  width: 100%;
-  height: 250px !important;   /* 🔥 FORCE HEIGHT */
-  background: #111;           /* fallback */
-}
-
-.gallery-item img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
-  display: block;
-  z-index: 2;
-}
