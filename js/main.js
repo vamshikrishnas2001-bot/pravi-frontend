@@ -625,14 +625,35 @@ function openGalleryLightbox() {
   const lb   = document.getElementById('galleryLightbox');
   const grid = document.getElementById('lightboxGrid');
   if (!lb || !grid) return;
+
   grid.innerHTML = '';
-  document.querySelectorAll('#galleryGrid .gallery-item').forEach(item => {
-    const clone = document.createElement('div');
-    clone.style.cssText = `aspect-ratio:1;background:${getComputedStyle(item).background};background-size:cover;background-position:center;cursor:pointer;transition:transform 0.2s`;
-    clone.addEventListener('mouseenter', () => clone.style.transform = 'scale(1.02)');
-    clone.addEventListener('mouseleave', () => clone.style.transform = 'scale(1)');
+
+  document.querySelectorAll('#galleryGrid .gallery-item img').forEach(img => {
+
+    const clone = document.createElement('img');
+    clone.src = img.src;
+    clone.loading = "lazy";
+
+    clone.style.cssText = `
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      aspect-ratio: 1;
+      cursor: pointer;
+      transition: transform 0.2s;
+    `;
+
+    clone.addEventListener('mouseenter', () => {
+      clone.style.transform = 'scale(1.02)';
+    });
+
+    clone.addEventListener('mouseleave', () => {
+      clone.style.transform = 'scale(1)';
+    });
+
     grid.appendChild(clone);
   });
+
   lb.style.display = 'block';
   document.body.style.overflow = 'hidden';
 }
