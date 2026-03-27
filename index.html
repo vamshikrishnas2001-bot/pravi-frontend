@@ -1,775 +1,642 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title id="siteTitle">Pravi Technologies – Innovative Lighting Solutions</title>
-  <meta name="description" id="siteDesc" content="Transforming spaces with cutting-edge LED lighting design. From architectural to decorative — we illuminate your world."/>
-  <meta name="keywords" id="siteKeys" content="LED lighting, Bengaluru, architectural lighting, commercial lighting"/>
-  <link rel="stylesheet" href="css/style.css" />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+/* ═══════════════════════════════════════════════════════
+   PRAVI TECHNOLOGIES — FRONTEND
+   All content loaded from MongoDB via Render backend API
+   ═══════════════════════════════════════════════════════ */
 
-  <style>
-    /* ===========================
-       MAP SECTION
-       =========================== */
-    #map-section {
-      padding: 6rem 2rem;
-      background: var(--bg-primary);
+const API = 'https://pravi-backend.onrender.com/api';
+
+/* ──────────────────────────────────────────────────────
+   BOOT — fetch all site data, apply, then init UI
+────────────────────────────────────────────────────── */
+async function bootSite() {
+  try {
+    const res = await fetch(`${API}/site`);
+    const site = res.ok ? await res.json() : {};
+    applyAll(site);
+  } catch (e) {
+    console.warn('Could not reach backend — running with defaults.', e);
+    applyAll({});
+  }
+  initUI(); // always run UI init regardless
+}
+
+/* ──────────────────────────────────────────────────────
+   APPLY ALL SECTIONS
+────────────────────────────────────────────────────── */
+function applyAll(site) {
+  applyBranding(site.branding || {});
+  applyHero(site.hero || {});
+  applyAbout(site.about || {});
+  applyStats(site.stats || {});
+  applyContact(site.contact || {});
+  applyMap(site.map || {});
+  applyWhatsApp(site.whatsapp || {});
+  applyClients(site.clients || {});
+  applyTestimonials(site.testimonials || {});
+  applyProducts(site.products || {});
+  applyFacility(site.facility || {});
+  applyGallery(site.gallery || {});
+  applyBeforeAfter(site.beforeafter || {});
+}
+
+/* ──────────────────────────────────────────────────────
+   BRANDING
+────────────────────────────────────────────────────── */
+function applyBranding(d) {
+  setText('brandName',       d.companyName   || 'PRAVI');
+  setText('footerBrandName', d.companyName   || 'PRAVI');
+  setText('brandSub',        d.tagline       || 'Technologies');
+  setText('footerTagline',   d.footerTagline || 'Innovative lighting solutions trusted across India since 2012. Your space, brilliantly lit.');
+
+  if (d.pageTitle)    document.getElementById('siteTitle').textContent   = d.pageTitle;
+  if (d.metaDesc)     document.getElementById('siteDesc')?.setAttribute('content', d.metaDesc);
+  if (d.keywords)     document.getElementById('siteKeys')?.setAttribute('content', d.keywords);
+  if (d.color)        document.documentElement.style.setProperty('--accent', d.color);
+  if (d.logo) {
+    // Replace SVG logo with image if provided
+    document.querySelectorAll('.pravi-logo svg').forEach(svg => {
+      const img = document.createElement('img');
+      img.src = d.logo; img.height = 38; img.alt = 'Logo';
+      svg.replaceWith(img);
+    });
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   HERO
+────────────────────────────────────────────────────── */
+function applyHero(d) {
+  setText('heroEyebrow',    d.eyebrow       || 'Premium Lighting');
+  setText('heroBtnPrimary', d.btnPrimary    || 'Explore Products');
+  setText('heroBtnSecondary', d.btnSecondary || 'Get a Quote');
+  setText('heroDesc',       d.description   || 'Transforming spaces with cutting-edge lighting design.');
+
+  const title = document.getElementById('heroTitle');
+  if (title) {
+    title.innerHTML = `${d.titleLine1 || 'INNOVATIVE'}<br>${d.titleLine2 || 'LIGHTING'}<br><span id="heroTitleAccent">${d.titleLine3Accent || 'SOLUTIONS'}</span>`;
+  }
+
+  if (d.bgImage !== undefined) {
+    const hero = document.getElementById('hero');
+    if (hero) {
+      if (d.bgImage) {
+        hero.style.backgroundImage = `url(${d.bgImage})`;
+        hero.style.backgroundSize = 'cover';
+        hero.style.backgroundPosition = 'center';
+      } else {
+        hero.style.backgroundImage = '';
+      }
     }
-    .map-embed-wrapper {
-      width: 100%;
-      border: 1px solid var(--border);
-      overflow: hidden;
-      position: relative;
+  } else if (d.bgImage) {
+    const hero = document.getElementById('hero');
+    if (hero) {
+      hero.style.backgroundImage = `url(${d.bgImage})`;
+      hero.style.backgroundSize = 'cover';
+      hero.style.backgroundPosition = 'center';
     }
-    .map-embed-wrapper iframe {
-      width: 100%;
-      height: 420px;
-      border: none;
-      display: block;
-      filter: grayscale(0.3) invert(0.05);
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   ABOUT
+────────────────────────────────────────────────────── */
+function applyAbout(d) {
+  setText('aboutEyebrow', d.eyebrow || 'Why Choose Us');
+  setText('aboutDesc',    d.description || '');
+
+  const titleEl = document.getElementById('aboutTitle');
+  if (titleEl) {
+    titleEl.innerHTML = `${d.titleLine1 || 'ILLUMINATE'}<br><span id="aboutTitleAccent">${d.titleLine2Accent || 'YOUR SPACES'}</span>`;
+  }
+
+  if (d.features && d.features.length) {
+    const iconMap = { 0: 'fa-bolt', 1: 'fa-palette', 2: 'fa-shield-halved', 3: 'fa-headset' };
+    const grid = document.getElementById('featuresGrid');
+    if (grid) {
+      grid.innerHTML = d.features.map((f, i) => `
+        <div class="feature-item">
+          <i class="fa-solid ${f.icon || iconMap[i] || 'fa-star'}"></i>
+          <div><h4>${esc(f.title)}</h4><p>${esc(f.desc)}</p></div>
+        </div>`).join('');
     }
-    .map-embed-placeholder {
-      width: 100%;
-      height: 420px;
-      background: var(--bg-card);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      color: var(--text-muted);
-      border: 1px dashed var(--border);
-    }
-    .map-embed-placeholder i {
-      font-size: 3rem;
-      color: var(--accent);
-      opacity: 0.4;
-    }
-    .map-embed-placeholder p {
-      font-family: var(--font-ui);
-      font-size: 0.85rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-    .map-info-strip {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
-      border: 1px solid var(--border);
-      border-top: none;
-      background: var(--bg-card);
-    }
-    .map-info-item {
-      padding: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      border-right: 1px solid var(--border);
-    }
-    .map-info-item:last-child { border-right: none; }
-    .map-info-item i {
-      color: var(--accent);
-      font-size: 1.2rem;
-      flex-shrink: 0;
-    }
-    .map-info-item .mii-label {
-      font-family: var(--font-ui);
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 0.2rem;
-    }
-    .map-info-item .mii-val {
-      font-size: 0.85rem;
-      color: var(--text-secondary);
-      line-height: 1.4;
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   COUNTER ANIMATION (top-level so applyStats can call it)
+────────────────────────────────────────────────────── */
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  if (isNaN(target)) return;
+  el.textContent = '0';
+  const start = performance.now();
+  const update = now => {
+    const progress = Math.min((now - start) / 1800, 1);
+    const eased    = 1 - Math.pow(1 - progress, 3);
+    el.textContent = Math.floor(eased * target);
+    if (progress < 1) requestAnimationFrame(update);
+    else el.textContent = target;
+  };
+  requestAnimationFrame(update);
+}
+
+/* ──────────────────────────────────────────────────────
+   STATS
+────────────────────────────────────────────────────── */
+function applyStats(d) {
+  const s1 = d.s1 || { num: 500, suffix: '+', label: 'Projects Done' };
+  const s2 = d.s2 || { num: 50,  suffix: '+', label: 'Industry Partners' };
+  const s3 = d.s3 || { num: 12,  suffix: 'yrs', label: 'In Business' };
+  const s4 = d.s4 || { num: 80,  suffix: '%',  label: 'Client Retention' };
+
+  // Hero stats
+  const statP = document.getElementById('statProjects');
+  const statPa = document.getElementById('statPartners');
+  const statY  = document.getElementById('statYears');
+  if (statP)  statP.dataset.target  = s1.num;
+  if (statPa) statPa.dataset.target = s2.num;
+  if (statY)  { statY.dataset.target = s3.num; setText('statYearsSuffix', s3.suffix); }
+  setText('statProjectsLabel', s1.label);
+  setText('statPartnersLabel', s2.label);
+  setText('statYearsLabel',    s3.label);
+
+  // Facility stats bar
+  const sb1 = document.getElementById('sb1');
+  const sb2 = document.getElementById('sb2');
+  const sb3 = document.getElementById('sb3');
+  const sb4 = document.getElementById('sb4');
+  if (sb1) sb1.dataset.target = s1.num;
+  if (sb2) sb2.dataset.target = s2.num;
+  if (sb3) sb3.dataset.target = s3.num;
+  if (sb4) sb4.dataset.target = s4.num;
+  setText('sb1s', s1.suffix); setText('sb1l', s1.label);
+  setText('sb2s', s2.suffix); setText('sb2l', s2.label);
+  setText('sb3s', s3.suffix); setText('sb3l', s3.label);
+  setText('sb4s', s4.suffix); setText('sb4l', s4.label);
+
+  // Re-trigger counter animations now that data-target values are set
+  setTimeout(() => {
+    document.querySelectorAll('[data-target]').forEach(animateCounter);
+  }, 300);
+}
+
+/* ──────────────────────────────────────────────────────
+   CONTACT
+────────────────────────────────────────────────────── */
+function applyContact(d) {
+  const phone   = d.phone   || '+91 98765 43210';
+  const email   = d.email   || 'info@pravitechnologies.com';
+  const address = d.address || 'No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100';
+  const hours   = d.hours   || 'Mon – Sat: 9:00 AM – 6:00 PM';
+
+  setText('contactAddress', address);
+  setText('contactPhone',   phone);
+  setText('contactHours',   hours);
+  setText('mapAddress',     address);
+  setText('mapPhone',       phone);
+  setText('mapHours',       hours);
+  setText('footerPhone',    phone);
+
+  const emailEl = document.getElementById('contactEmail');
+  if (emailEl) { emailEl.textContent = email; emailEl.href = 'mailto:' + email; }
+  const fEmailEl = document.getElementById('footerEmail');
+  if (fEmailEl) { fEmailEl.textContent = email; fEmailEl.href = 'mailto:' + email; }
+
+  // Social links
+  const socials = { socialFb: d.facebook, socialIg: d.instagram, socialLi: d.linkedin, socialYt: d.youtube };
+  Object.entries(socials).forEach(([id, url]) => {
+    const el = document.getElementById(id);
+    if (el && url && url !== '#') { el.href = url; el.style.display = 'flex'; }
+  });
+  // Footer socials
+  const fSocials = { footerFb: d.facebook, footerIg: d.instagram, footerLi: d.linkedin };
+  Object.entries(fSocials).forEach(([id, url]) => {
+    const el = document.getElementById(id);
+    if (el && url && url !== '#') el.href = url;
+  });
+}
+
+/* ──────────────────────────────────────────────────────
+   MAP
+────────────────────────────────────────────────────── */
+function applyMap(d) {
+  if (d.show === false) {
+    const sec = document.getElementById('map-section');
+    if (sec) sec.style.display = 'none';
+    return;
+  }
+  const placeholder = document.getElementById('mapPlaceholder');
+  const container   = document.getElementById('mapIframeContainer');
+  if (!container) return;
+
+  if (d.embedCode) {
+    if (placeholder) placeholder.style.display = 'none';
+    container.style.display = 'block';
+    container.innerHTML = d.embedCode;
+    const iframe = container.querySelector('iframe');
+    if (iframe) { iframe.style.width = '100%'; iframe.style.height = d.height || '420px'; iframe.style.border = 'none'; }
+  } else if (d.embedUrl) {
+    if (placeholder) placeholder.style.display = 'none';
+    container.style.display = 'block';
+    container.innerHTML = `<iframe src="${d.embedUrl}" style="width:100%;height:${d.height || '420px'};border:none;display:block;filter:grayscale(0.3)" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>`;
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   WHATSAPP
+────────────────────────────────────────────────────── */
+function applyWhatsApp(d) {
+  const float = document.getElementById('wa-float');
+  if (!float) return;
+  if (d.enabled === false) { float.style.display = 'none'; return; }
+  float.style.display = 'flex';
+  if (d.position === 'bottom-left') float.classList.add('wa-left');
+  const tooltip = document.getElementById('wa-tooltip-bubble');
+  if (tooltip) tooltip.textContent = d.tooltip || 'Chat with us on WhatsApp!';
+}
+
+function openWhatsApp() {
+  // Re-fetch from site or use last known data
+  fetch(`${API}/site/whatsapp`).then(r => r.json()).then(d => {
+    const phone = (d.phone || '+919876543210').replace(/[^0-9]/g, '');
+    const msg   = encodeURIComponent(d.message || "Hello Pravi Technologies! I'm interested in your lighting solutions.");
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+  }).catch(() => {
+    window.open('https://wa.me/919876543210', '_blank');
+  });
+}
+
+/* ──────────────────────────────────────────────────────
+   CLIENTS MARQUEE
+────────────────────────────────────────────────────── */
+function applyClients(d) {
+  const marquee = document.getElementById('clientsMarquee');
+  if (!marquee || !d.items || !d.items.length) return;
+  const all = [...d.items, ...d.items]; // duplicate for infinite scroll
+  marquee.innerHTML = all.map(c => {
+    if (c.logo) return `<div class="client-logo"><img src="${c.logo}" alt="${esc(c.name)}" style="height:32px;width:auto;filter:grayscale(1) brightness(0.6);transition:filter 0.3s"/></div>`;
+    return `<div class="client-logo">${esc(c.name)}</div>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────────────
+   TESTIMONIALS CAROUSEL
+────────────────────────────────────────────────────── */
+let _testimonials = [
+  { stars: '★★★★★', text: '"Pravi Technologies transformed our office lighting completely."', initials: 'RK', name: 'Rajesh Kumar', role: 'Facilities Head, Infosys' },
+  { stars: '★★★★★', text: '"Exceptional quality and service from Pravi Technologies."', initials: 'PS', name: 'Priya Sharma', role: 'GM Operations, Prestige Hotels' },
+  { stars: '★★★★☆', text: '"Professional team, on-time delivery, highly recommended!"', initials: 'AM', name: 'Amit Mehta', role: 'Project Head, Brigade Group' },
+];
+let _tCurrent = 0;
+
+function applyTestimonials(d) {
+  if (d.items && d.items.length) _testimonials = d.items;
+  buildTestiDots();
+  setTestimonial(0);
+}
+
+function buildTestiDots() {
+  const dotsEl = document.getElementById('testiDots');
+  if (!dotsEl) return;
+  dotsEl.innerHTML = '';
+  _testimonials.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => setTestimonial(i));
+    dotsEl.appendChild(dot);
+  });
+}
+
+function setTestimonial(index) {
+  _tCurrent = (index + _testimonials.length) % _testimonials.length;
+  const t    = _testimonials[_tCurrent];
+  const card = document.getElementById('tCard');
+  if (!card) return;
+  card.style.opacity = '0'; card.style.transform = 'translateY(10px)';
+  setTimeout(() => {
+    card.innerHTML = `
+      <div class="stars">${t.stars || '★★★★★'}</div>
+      <p class="testi-text">${esc(t.text)}</p>
+      <div class="testi-author">
+        <div class="author-avatar">${esc(t.initials || t.name?.slice(0,2) || 'AB')}</div>
+        <div><h4>${esc(t.name)}</h4><p>${esc(t.role)}</p></div>
+      </div>`;
+    card.style.transition = 'opacity 0.4s, transform 0.4s';
+    card.style.opacity = '1'; card.style.transform = 'translateY(0)';
+    document.querySelectorAll('#testiDots .dot').forEach((d, i) => d.classList.toggle('active', i === _tCurrent));
+  }, 200);
+}
+
+/* ──────────────────────────────────────────────────────
+   PRODUCTS
+────────────────────────────────────────────────────── */
+function applyProducts(d) {
+  if (!d.items || !d.items.length) return;
+  const grid = document.getElementById('productsGrid');
+  if (!grid) return;
+  grid.innerHTML = d.items.map(p => `
+    <div class="product-card" data-category="${esc(p.category || '').toLowerCase()}">
+      <div class="product-img" style="${p.image ? `background-image:url(${p.image});background-size:cover;background-position:center` : 'background:linear-gradient(135deg,#1a2a2a,#0d1f1f)'}"></div>
+      <div class="product-info">
+        <h3>${esc(p.name)}</h3>
+        <p>${esc(p.category)}</p>
+        <a href="${esc(p.link || '#quote')}" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
+      </div>
+    </div>`).join('');
+}
+
+/* ──────────────────────────────────────────────────────
+   FACILITY SLIDER
+────────────────────────────────────────────────────── */
+function applyFacility(d) {
+  if (!d.images || !d.images.length) return;
+  const slider = document.getElementById('facilitySlider');
+  if (!slider) return;
+  slider.innerHTML = d.images.map(src =>
+    `<div class="facility-slide" style="background-image:url(${src});background-size:cover;background-position:center"></div>`
+  ).join('');
+  // Reinit slider dots
+  initFacilitySlider();
+}
+
+/* ──────────────────────────────────────────────────────
+   GALLERY
+────────────────────────────────────────────────────── */
+function applyGallery(d) {
+  if (!d.images || !d.images.length) return;
+  const grid = document.getElementById('galleryGrid');
+  if (!grid) return;
+  const sizeClasses = ['tall', '', '', 'wide', '', 'tall', '', ''];
+  grid.innerHTML = d.images.map((item, i) => {
+    const src = item.src || item;
+    const cat = item.category || 'all';
+    const cls = sizeClasses[i % sizeClasses.length];
+    return `<div class="gallery-item ${cls}" data-cat="${esc(cat)}" style="background-image:url(${src});background-size:cover;background-position:center"></div>`;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────────────
+   BEFORE & AFTER
+────────────────────────────────────────────────────── */
+function applyBeforeAfter(d) {
+  if (!d.pairs || !d.pairs.length) return;
+  const container = document.querySelector('#before-after .container');
+  if (!container) return;
+  // Keep section header, replace ba-sets
+  const header = container.querySelector('.section-header');
+  container.innerHTML = '';
+  if (header) container.appendChild(header);
+
+  d.pairs.forEach((pair, i) => {
+    const div = document.createElement('div');
+    div.className = 'ba-set';
+    div.innerHTML = `
+      <p class="ba-set-title">Project ${i + 1}</p>
+      <div class="ba-grid">
+        <div class="ba-card">
+          <div class="ba-img before" style="${pair.before ? `background-image:url(${pair.before});background-size:cover;background-position:center` : ''}"></div>
+          <div class="ba-label">Before</div>
+        </div>
+        <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
+        <div class="ba-card">
+          <div class="ba-img after" style="${pair.after ? `background-image:url(${pair.after});background-size:cover;background-position:center` : ''}"></div>
+          <div class="ba-label teal">After</div>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+}
+
+/* ══════════════════════════════════════════════════════
+   QUOTE FORM — sends lead to backend
+══════════════════════════════════════════════════════ */
+async function submitForm() {
+  const name    = document.getElementById('fName')?.value.trim();
+  const phone   = document.getElementById('fPhone')?.value.trim();
+  const email   = document.getElementById('fEmail')?.value.trim();
+  const project = document.getElementById('fProject')?.value;
+  const message = document.getElementById('fMessage')?.value.trim();
+
+  if (!name || !phone || !email) { alert('Please fill in all required fields.'); return; }
+  if (!email.includes('@'))       { alert('Please enter a valid email address.'); return; }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+
+  try {
+    // 1. Save lead to backend
+    const res = await fetch(`${API}/leads`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, phone, email, project, message }),
+    });
+
+    if (res.ok) {
+      // 2. Send emails via EmailJS
+      try {
+        // Admin notification
+        await emailjs.send('service_a94ptrg', 'template_slycisr', {
+          name:    name,
+          email:   email,
+          phone:   phone,
+          project: project || 'Not specified',
+          message: message || 'No message',
+        });
+
+        // User thank-you
+        await emailjs.send('service_a94ptrg', 'template_tb95gbc', {
+          name:     name,
+          to_email: email,
+          phone:    phone,
+          project:  project || 'Not specified',
+          message:  message || 'No message',
+        });
+      } catch (emailErr) {
+        console.warn('Email failed:', emailErr);
+      }
+
+      // 3. Show success
+      btn.style.display = 'none';
+      const success = document.getElementById('formSuccess');
+      if (success) success.classList.add('visible');
+      ['fName','fPhone','fEmail','fProject','fMessage'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
+      alert('Failed to send. Please try again.');
     }
 
-    /* ===========================
-       WHATSAPP FLOATING BUTTON
-       =========================== */
-    #wa-float {
-      position: fixed;
-      bottom: 5rem;
-      right: 2rem;
-      z-index: 998;
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
-      gap: 0.5rem;
-      pointer-events: none;
+  } catch {
+    btn.disabled = false;
+    btn.innerHTML = 'Send Request <i class="fa-solid fa-paper-plane"></i>';
+    alert('Network error. Please check your connection and try again.');
+  }
+}
+
+/* ══════════════════════════════════════════════════════
+   UI INIT — navbar, slider, counters, scroll, etc.
+══════════════════════════════════════════════════════ */
+function initUI() {
+  /* Navbar scroll */
+  const navbar = document.getElementById('navbar');
+  const scrollTopBtn = document.getElementById('scrollTop');
+  window.addEventListener('scroll', () => {
+    if (navbar) navbar.classList.toggle('scrolled', window.scrollY > 50);
+    if (scrollTopBtn) scrollTopBtn.classList.toggle('visible', window.scrollY > 400);
+  });
+
+  /* Hamburger */
+  const hamburger  = document.getElementById('hamburger');
+  const mobileMenu = document.getElementById('mobileMenu');
+  if (hamburger && mobileMenu) {
+    hamburger.addEventListener('click', () => {
+      hamburger.classList.toggle('active');
+      mobileMenu.classList.toggle('open');
+    });
+    mobileMenu.querySelectorAll('a').forEach(a => {
+      a.addEventListener('click', () => {
+        hamburger.classList.remove('active');
+        mobileMenu.classList.remove('open');
+      });
+    });
+  }
+
+  /* Scroll to top */
+  if (scrollTopBtn) scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+  /* Counter animation — uses top-level animateCounter() */
+  window._counterObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.querySelectorAll('[data-target]').forEach(animateCounter);
+        obs.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  const statsBar = document.querySelector('.stats-bar');
+  if (statsBar) window._counterObserver.observe(statsBar);
+
+  /* Facility slider */
+  initFacilitySlider();
+
+  /* Testimonials auto-rotate */
+  const prevBtn = document.getElementById('testiPrev');
+  const nextBtn = document.getElementById('testiNext');
+  if (prevBtn) prevBtn.addEventListener('click', () => setTestimonial(_tCurrent - 1));
+  if (nextBtn) nextBtn.addEventListener('click', () => setTestimonial(_tCurrent + 1));
+  setInterval(() => setTestimonial(_tCurrent + 1), 5000);
+
+  /* Scroll reveal */
+  const revealObs = new IntersectionObserver((entries, obs) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+  ['.split-layout', '.product-card', '.stat-block', '.gallery-item', '.ba-card',
+   '.cert-item', '.testimonial-card', '.quote-form-wrapper', '.footer-col',
+   '.footer-brand', '.legal-content', '#map-section .map-embed-wrapper', '#map-section .map-info-strip']
+    .forEach(sel => document.querySelectorAll(sel).forEach((el, i) => {
+      el.classList.add('reveal');
+      el.style.transitionDelay = `${i * 0.08}s`;
+      revealObs.observe(el);
+    }));
+
+  /* Active nav on scroll */
+  const navLinks = document.querySelectorAll('.nav-links a');
+  new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        const id = e.target.getAttribute('id');
+        navLinks.forEach(link => link.classList.toggle('active-link', link.getAttribute('href') === `#${id}`));
+      }
+    });
+  }, { threshold: 0.4 }).observe(document.querySelectorAll('section[id]'));
+
+  /* Hero parallax */
+  window.addEventListener('scroll', () => {
+    const heroLeft = document.querySelector('.hero-left');
+    if (heroLeft && window.scrollY < window.innerHeight) {
+      heroLeft.style.transform = `translateY(${window.scrollY * 0.15}px)`;
     }
-    #wa-float.wa-left {
-      right: auto;
-      left: 2rem;
-      align-items: flex-start;
-    }
-    #wa-tooltip-bubble {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      color: var(--text-secondary);
-      font-family: var(--font-ui);
-      font-size: 0.78rem;
-      letter-spacing: 0.05em;
-      padding: 0.4rem 0.9rem;
-      white-space: nowrap;
-      opacity: 0;
-      transform: translateX(10px);
-      transition: all 0.3s;
-      pointer-events: none;
-    }
-    #wa-float:hover #wa-tooltip-bubble {
-      opacity: 1;
-      transform: translateX(0);
-    }
-    #wa-btn {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: #25d366;
-      border: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 20px rgba(37,211,102,0.35);
-      transition: transform 0.2s, box-shadow 0.2s;
-      pointer-events: all;
-      position: relative;
-    }
-    #wa-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 28px rgba(37,211,102,0.5);
-    }
-    #wa-btn i {
-      font-size: 1.6rem;
-      color: #fff;
-    }
-    #wa-btn::before {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 2px solid rgba(37,211,102,0.3);
-      animation: wa-ring 2.5s ease-in-out infinite;
-    }
-    @keyframes wa-ring {
-      0%, 100% { transform: scale(1); opacity: 0.6; }
-      50% { transform: scale(1.2); opacity: 0; }
-    }
+  });
+}
 
-    /* ===========================
-       ACTIVE NAV LINK
-       =========================== */
-    .nav-links a.active-link {
-      color: var(--accent);
-    }
-    .nav-links a.active-link::after {
-      transform: scaleX(1);
-    }
+/* ──────────────────────────────────────────────────────
+   FACILITY SLIDER
+────────────────────────────────────────────────────── */
+function initFacilitySlider() {
+  const slider = document.getElementById('facilitySlider');
+  if (!slider) return;
+  const slides = slider.querySelectorAll('.facility-slide');
+  if (!slides.length) return;
+  const dotsContainer = document.getElementById('facilityDots');
+  let current = 0;
+  let autoplay;
 
-    /* ===========================
-       BEFORE & AFTER — enhanced
-       =========================== */
-    .ba-set {
-      margin-bottom: 3rem;
-    }
-    .ba-set-title {
-      font-family: var(--font-ui);
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 1rem;
-      text-align: center;
-    }
+  if (dotsContainer) {
+    dotsContainer.innerHTML = '';
+    slides.forEach((_, i) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.addEventListener('click', () => goTo(i));
+      dotsContainer.appendChild(dot);
+    });
+  }
 
-    /* ===========================
-       CLIENTS — logo image support
-       =========================== */
-    .client-logo img {
-      height: 32px;
-      width: auto;
-      filter: grayscale(1) brightness(0.6);
-      transition: filter 0.3s;
-    }
-    .client-logo:hover img {
-      filter: grayscale(0) brightness(1);
-    }
+  const goTo = index => {
+    current = (index + slides.length) % slides.length;
+    slider.style.transform = `translateX(-${current * 100}%)`;
+    if (dotsContainer) dotsContainer.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === current));
+  };
 
-    /* ===========================
-       SCROLL TOP — shift left when WA exists
-       =========================== */
-    .scroll-top {
-      bottom: 2rem;
-      right: 2rem;
-    }
+  const prevBtn = document.getElementById('facilityPrev');
+  const nextBtn = document.getElementById('facilityNext');
+  if (prevBtn) prevBtn.onclick = () => { goTo(current - 1); clearInterval(autoplay); autoplay = setInterval(() => goTo(current + 1), 4000); };
+  if (nextBtn) nextBtn.onclick = () => { goTo(current + 1); clearInterval(autoplay); autoplay = setInterval(() => goTo(current + 1), 4000); };
+  autoplay = setInterval(() => goTo(current + 1), 4000);
+}
 
-    /* ===========================
-       RESPONSIVE ADDITIONS
-       =========================== */
-    @media (max-width: 768px) {
-      .map-info-strip { grid-template-columns: 1fr; }
-      .map-info-item { border-right: none; border-bottom: 1px solid var(--border); }
-      .map-info-item:last-child { border-bottom: none; }
-      .map-embed-wrapper iframe { height: 280px; }
-      #wa-float { bottom: 4.5rem; right: 1rem; }
-    }
-  </style>
-</head>
-<body>
+/* ──────────────────────────────────────────────────────
+   GALLERY LIGHTBOX
+────────────────────────────────────────────────────── */
+function openGalleryLightbox() {
+  const lb   = document.getElementById('galleryLightbox');
+  const grid = document.getElementById('lightboxGrid');
+  if (!lb || !grid) return;
+  grid.innerHTML = '';
+  document.querySelectorAll('#galleryGrid .gallery-item').forEach(item => {
+    const clone = document.createElement('div');
+    clone.style.cssText = `aspect-ratio:1;background:${getComputedStyle(item).background};background-size:cover;background-position:center;cursor:pointer;transition:transform 0.2s`;
+    clone.addEventListener('mouseenter', () => clone.style.transform = 'scale(1.02)');
+    clone.addEventListener('mouseleave', () => clone.style.transform = 'scale(1)');
+    grid.appendChild(clone);
+  });
+  lb.style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
 
-  <!-- ===== NAVBAR ===== -->
-  <nav id="navbar">
-    <div class="nav-inner">
-      <a href="#" class="pravi-logo" id="navLogo">
-        <img src="logo.jpeg" alt="Pravi Technologies" style="height:48px; width:auto; object-fit:contain;">
-        <div class="pravi-logo-text">
-          <span class="pravi-name" id="brandName">PRAVI</span>
-          <span class="pravi-sub" id="brandSub">Technologies</span>
-        </div>
-      </a>
-      <ul class="nav-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#products">Products</a></li>
-        <li><a href="#facility">Facility</a></li>
-        <li><a href="#gallery">Gallery</a></li>
-        <li><a href="#clients">Clients</a></li>
-        <li><a href="#map-section">Find Us</a></li>
-        <li><a href="#quote" class="nav-cta">Get a Quote</a></li>
-      </ul>
-      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
-    </div>
-    <div class="mobile-menu" id="mobileMenu">
-      <a href="#about">About</a>
-      <a href="#products">Products</a>
-      <a href="#facility">Facility</a>
-      <a href="#gallery">Gallery</a>
-      <a href="#clients">Clients</a>
-      <a href="#map-section">Find Us</a>
-      <a href="#quote">Get a Quote</a>
-    </div>
-  </nav>
+function closeGalleryLightbox() {
+  const lb = document.getElementById('galleryLightbox');
+  if (lb) lb.style.display = 'none';
+  document.body.style.overflow = '';
+}
 
-  <!-- ===== HERO ===== -->
-  <section id="hero">
-    <div class="hero-bg-grid"></div>
-    <div class="hero-content">
-      <div class="hero-left">
-        <p class="hero-eyebrow" id="heroEyebrow">Premium Lighting</p>
-        <h1 class="hero-title" id="heroTitle">INNOVATIVE<br>LIGHTING<br><span id="heroTitleAccent">SOLUTIONS</span></h1>
-        <p class="hero-desc" id="heroDesc">Transforming spaces with cutting-edge lighting design. From architectural to decorative — we illuminate your world.</p>
-        <div class="hero-btns">
-          <a href="#products" class="btn-primary" id="heroBtnPrimary">Explore Products</a>
-          <a href="#quote" class="btn-outline" id="heroBtnSecondary">Get a Quote</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat"><span class="stat-num" data-target="500" id="statProjects">0</span><span>+</span><p id="statProjectsLabel">Projects</p></div>
-          <div class="stat-divider"></div>
-          <div class="stat"><span class="stat-num" data-target="50" id="statPartners">0</span><span>+</span><p id="statPartnersLabel">Partners</p></div>
-          <div class="stat-divider"></div>
-          <div class="stat"><span class="stat-num" data-target="12" id="statYears">0</span><span id="statYearsSuffix">yrs</span><p id="statYearsLabel">Experience</p></div>
-        </div>
-      </div>
-      <div class="hero-image">
-        <div class="hero-img-wrapper"></div>
-      </div>
-    </div>
-  </section>
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeGalleryLightbox(); });
 
-  <!-- ===== ABOUT ===== -->
-  <section id="about">
-    <div class="container split-layout">
-      <div class="split-media">
-        <div class="about-img-grid" id="aboutImgGrid">
-          <div class="about-img-card large" id="aboutImg1">
-            <div class="about-img-placeholder"><i class="fa-solid fa-image"></i></div>
-          </div>
-          <div class="about-img-card small" id="aboutImg2">
-            <div class="about-img-placeholder"><i class="fa-solid fa-image"></i></div>
-          </div>
-        </div>
-      </div>
-      <div class="split-text">
-        <p class="section-eyebrow" id="aboutEyebrow">Why Choose Us</p>
-        <h2 class="section-title" id="aboutTitle">ILLUMINATE<br><span id="aboutTitleAccent">YOUR SPACES</span></h2>
-        <p class="section-desc" id="aboutDesc">We specialize in bespoke lighting solutions that blend form and function. Our designs enhance ambiance, improve energy efficiency, and create immersive environments.</p>
-        <div class="features-grid" id="featuresGrid">
-          <div class="feature-item">
-            <i class="fa-solid fa-bolt"></i>
-            <div><h4>Energy Efficient</h4><p>LED-based solutions cutting energy costs by up to 70%.</p></div>
-          </div>
-          <div class="feature-item">
-            <i class="fa-solid fa-palette"></i>
-            <div><h4>Custom Designs</h4><p>Tailor-made fixtures matching your aesthetic vision.</p></div>
-          </div>
-          <div class="feature-item">
-            <i class="fa-solid fa-shield-halved"></i>
-            <div><h4>Certified Quality</h4><p>ISO-certified products with long-term warranties.</p></div>
-          </div>
-          <div class="feature-item">
-            <i class="fa-solid fa-headset"></i>
-            <div><h4>24/7 Support</h4><p>Dedicated support team for installations and queries.</p></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
+/* ──────────────────────────────────────────────────────
+   UTILITIES
+────────────────────────────────────────────────────── */
+function setText(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+function esc(str) {
+  return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
 
-  <!-- ===== PRODUCTS ===== -->
-  <section id="products">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">What We Offer</p>
-        <h2 class="section-title">OUR <span>PRODUCTS</span></h2>
-      </div>
-      <div class="products-grid" id="productsGrid">
-        <div class="product-card" data-category="architectural">
-          <div class="product-img p1"></div>
-          <div class="product-info">
-            <h3>Track Lighting</h3>
-            <p>Architectural</p>
-            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </div>
-        <div class="product-card" data-category="decorative">
-          <div class="product-img p2"></div>
-          <div class="product-info">
-            <h3>LED Strip Systems</h3>
-            <p>Decorative</p>
-            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </div>
-        <div class="product-card" data-category="outdoor">
-          <div class="product-img p3"></div>
-          <div class="product-info">
-            <h3>Flood Lights</h3>
-            <p>Outdoor</p>
-            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </div>
-        <div class="product-card" data-category="indoor">
-          <div class="product-img p4"></div>
-          <div class="product-info">
-            <h3>Pendant Lights</h3>
-            <p>Indoor</p>
-            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </div>
-        <div class="product-card" data-category="architectural">
-          <div class="product-img p5"></div>
-          <div class="product-info">
-            <h3>Frame Panels</h3>
-            <p>Architectural</p>
-            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </div>
-        <div class="product-card" data-category="commercial">
-          <div class="product-img p6"></div>
-          <div class="product-info">
-            <h3>Commercial Fixtures</h3>
-            <p>Commercial</p>
-            <a href="#quote" class="product-link">Enquire <i class="fa-solid fa-arrow-right"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== FACILITY ===== -->
-  <section id="facility">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">Our Infrastructure</p>
-        <h2 class="section-title">OUR <span>FACILITY</span></h2>
-      </div>
-      <div class="facility-slider-wrapper">
-        <div class="facility-slider" id="facilitySlider">
-          <div class="facility-slide fs1"></div>
-          <div class="facility-slide fs2"></div>
-          <div class="facility-slide fs3"></div>
-          <div class="facility-slide fs4"></div>
-        </div>
-        <button class="slider-btn prev" id="facilityPrev"><i class="fa-solid fa-chevron-left"></i></button>
-        <button class="slider-btn next" id="facilityNext"><i class="fa-solid fa-chevron-right"></i></button>
-        <div class="slider-dots" id="facilityDots"></div>
-      </div>
-      <div class="stats-bar">
-        <div class="stat-block">
-          <span class="stat-big" data-target="500" id="sb1">0</span><span class="stat-plus" id="sb1s">+</span>
-          <p id="sb1l">Projects Done</p>
-        </div>
-        <div class="stat-block">
-          <span class="stat-big" data-target="50" id="sb2">0</span><span class="stat-plus" id="sb2s">+</span>
-          <p id="sb2l">Industry Partners</p>
-        </div>
-        <div class="stat-block">
-          <span class="stat-big" data-target="12" id="sb3">0</span><span class="stat-plus" id="sb3s">yrs</span>
-          <p id="sb3l">In Business</p>
-        </div>
-        <div class="stat-block">
-          <span class="stat-big" data-target="80" id="sb4">0</span><span class="stat-plus" id="sb4s">%</span>
-          <p id="sb4l">Client Retention</p>
-        </div>
-      </div>
-      <p class="facility-tagline">LIGHTING THE FUTURE — ONE SPACE AT A TIME. — PRAVI TECHNOLOGIES</p>
-    </div>
-  </section>
-
-  <!-- ===== GALLERY ===== -->
-  <section id="gallery">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">Our Work</p>
-        <h2 class="section-title">PROJECT <span>GALLERY</span></h2>
-      </div>
-      <div class="gallery-masonry" id="galleryGrid">
-        <div class="gallery-item tall" data-cat="residential"></div>
-        <div class="gallery-item" data-cat="commercial"></div>
-        <div class="gallery-item" data-cat="outdoor"></div>
-        <div class="gallery-item wide" data-cat="commercial"></div>
-        <div class="gallery-item" data-cat="residential"></div>
-        <div class="gallery-item tall" data-cat="outdoor"></div>
-        <div class="gallery-item" data-cat="commercial"></div>
-        <div class="gallery-item" data-cat="residential"></div>
-      </div>
-      <div class="gallery-cta">
-        <button class="btn-primary" onclick="openGalleryLightbox()">View All Projects</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== GALLERY LIGHTBOX ===== -->
-  <div id="galleryLightbox" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.96);z-index:2000;overflow-y:auto;">
-    <div style="position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:space-between;padding:1rem 2rem;background:rgba(8,13,13,0.95);border-bottom:1px solid rgba(0,201,167,0.15);">
-      <span style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#00c9a7;letter-spacing:2px;">ALL PROJECTS</span>
-      <button onclick="closeGalleryLightbox()" style="background:none;border:1px solid rgba(255,255,255,0.15);border-radius:6px;color:#e0efed;font-size:1.2rem;width:38px;height:38px;cursor:pointer;display:flex;align-items:center;justify-content:center;">&times;</button>
-    </div>
-    <div id="lightboxGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:4px;padding:4px;"></div>
-  </div>
-
-  <!-- ===== BEFORE & AFTER ===== -->
-  <section id="before-after">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">Transformation</p>
-        <h2 class="section-title">BEFORE <span>&amp; AFTER</span></h2>
-      </div>
-
-      <!-- Pair 1 -->
-      <div class="ba-set">
-        <p class="ba-set-title">Project 1</p>
-        <div class="ba-grid">
-          <div class="ba-card">
-            <div class="ba-img before b1" id="baB1"></div>
-            <div class="ba-label">Before</div>
-          </div>
-          <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="ba-card">
-            <div class="ba-img after a1" id="baA1"></div>
-            <div class="ba-label teal">After</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pair 2 -->
-      <div class="ba-set">
-        <p class="ba-set-title">Project 2</p>
-        <div class="ba-grid">
-          <div class="ba-card">
-            <div class="ba-img before b2" id="baB2"></div>
-            <div class="ba-label">Before</div>
-          </div>
-          <div class="ba-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-          <div class="ba-card">
-            <div class="ba-img after a2" id="baA2"></div>
-            <div class="ba-label teal">After</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CERTIFICATIONS ===== -->
-  <section id="certifications">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">Verified</p>
-        <h2 class="section-title">OUR <span>CERTIFICATIONS</span></h2>
-      </div>
-      <div class="cert-strip">
-        <div class="cert-item"><i class="fa-solid fa-certificate"></i><p>ISO 9001</p></div>
-        <div class="cert-item"><i class="fa-solid fa-award"></i><p>CE Certified</p></div>
-        <div class="cert-item"><i class="fa-solid fa-medal"></i><p>RoHS Compliant</p></div>
-        <div class="cert-item"><i class="fa-solid fa-star"></i><p>UL Listed</p></div>
-        <div class="cert-item"><i class="fa-solid fa-shield"></i><p>BIS Approved</p></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CLIENTS ===== -->
-  <section id="clients">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">Trusted By</p>
-        <h2 class="section-title">OUR <span>CLIENTS</span></h2>
-      </div>
-      <div class="clients-marquee-wrapper">
-        <div class="clients-marquee" id="clientsMarquee">
-          <div class="client-logo">INFOSYS</div>
-          <div class="client-logo">WIPRO</div>
-          <div class="client-logo">TATA GROUP</div>
-          <div class="client-logo">PRESTIGE</div>
-          <div class="client-logo">BRIGADE</div>
-          <div class="client-logo">SOBHA</div>
-          <div class="client-logo">L&amp;T</div>
-          <div class="client-logo">GODREJ</div>
-          <!-- duplicated for seamless marquee -->
-          <div class="client-logo">INFOSYS</div>
-          <div class="client-logo">WIPRO</div>
-          <div class="client-logo">TATA GROUP</div>
-          <div class="client-logo">PRESTIGE</div>
-          <div class="client-logo">BRIGADE</div>
-          <div class="client-logo">SOBHA</div>
-          <div class="client-logo">L&amp;T</div>
-          <div class="client-logo">GODREJ</div>
-        </div>
-      </div>
-
-      <!-- Testimonials Carousel -->
-      <div class="testimonials">
-        <div class="testimonial-card active" id="tCard">
-          <div class="stars">★★★★★</div>
-          <p class="testi-text">"Pravi Technologies transformed our office lighting completely. The custom LED solutions boosted productivity and the team's morale noticeably improved."</p>
-          <div class="testi-author">
-            <div class="author-avatar">RK</div>
-            <div>
-              <h4>Rajesh Kumar</h4>
-              <p>Facilities Head, Infosys</p>
-            </div>
-          </div>
-        </div>
-        <div class="testi-controls">
-          <button class="testi-btn" id="testiPrev"><i class="fa-solid fa-chevron-left"></i></button>
-          <div class="testi-dots" id="testiDots"></div>
-          <button class="testi-btn" id="testiNext"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== MAP / FIND US ===== -->
-  <section id="map-section">
-    <div class="container">
-      <div class="section-header">
-        <p class="section-eyebrow">Visit Us</p>
-        <h2 class="section-title">FIND <span>US</span></h2>
-      </div>
-      <div class="map-embed-wrapper" id="mapWrapper">
-        <!-- Placeholder — admin replaces with real embed -->
-        <div class="map-embed-placeholder" id="mapPlaceholder">
-          <i class="fa-solid fa-map-location-dot"></i>
-          <p>Map embed — set from Admin Panel</p>
-        </div>
-        <!-- Real embed injected by admin data -->
-        <div id="mapIframeContainer" style="display:none"></div>
-      </div>
-      <div class="map-info-strip">
-        <div class="map-info-item">
-          <i class="fa-solid fa-location-dot"></i>
-          <div>
-            <div class="mii-label">Address</div>
-            <div class="mii-val" id="mapAddress">No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100</div>
-          </div>
-        </div>
-        <div class="map-info-item">
-          <i class="fa-solid fa-phone"></i>
-          <div>
-            <div class="mii-label">Phone</div>
-            <div class="mii-val" id="mapPhone">+91 98765 43210</div>
-          </div>
-        </div>
-        <div class="map-info-item">
-          <i class="fa-solid fa-clock"></i>
-          <div>
-            <div class="mii-label">Working Hours</div>
-            <div class="mii-val" id="mapHours">Mon – Sat: 9:00 AM – 6:00 PM</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== REQUEST A QUOTE ===== -->
-  <section id="quote">
-    <div class="container split-layout">
-      <div class="quote-info">
-        <p class="section-eyebrow">Get in Touch</p>
-        <h2 class="section-title">REQUEST A<br><span>QUOTE</span></h2>
-        <div class="contact-details">
-          <div class="contact-item"><i class="fa-solid fa-location-dot"></i><p id="contactAddress">No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100</p></div>
-          <div class="contact-item"><i class="fa-solid fa-phone"></i><p id="contactPhone">+91 98765 43210</p></div>
-          <div class="contact-item"><i class="fa-solid fa-envelope"></i><p><a id="contactEmail" href="/cdn-cgi/l/email-protection#5e373038311e2e2c3f28372a3b3d363031323139373b2d703730"><span class="__cf_email__" data-cfemail="177e79717857676576617e6372747f79787b78707e7264397e79">[email&#160;protected]</span></a></p></div>
-          <div class="contact-item"><i class="fa-solid fa-clock"></i><p id="contactHours">Mon – Sat: 9:00 AM – 6:00 PM</p></div>
-        </div>
-        <div class="social-links" id="socialLinks">
-          <a href="#" id="socialFb"><i class="fa-brands fa-facebook"></i></a>
-          <a href="#" id="socialIg"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" id="socialLi"><i class="fa-brands fa-linkedin"></i></a>
-          <a href="#" id="socialYt"><i class="fa-brands fa-youtube"></i></a>
-        </div>
-      </div>
-      <div class="quote-form-wrapper">
-        <div class="quote-form" id="quoteForm">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Full Name *</label>
-              <input type="text" placeholder="John Doe" id="fName"/>
-            </div>
-            <div class="form-group">
-              <label>Phone *</label>
-              <input type="tel" placeholder="+91 XXXXX XXXXX" id="fPhone"/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Email Address *</label>
-            <input type="email" placeholder="you@email.com" id="fEmail"/>
-          </div>
-          <div class="form-group">
-            <label>Project Type</label>
-            <select id="fProject">
-              <option value="">Select project type</option>
-              <option>Residential</option>
-              <option>Commercial</option>
-              <option>Industrial</option>
-              <option>Outdoor / Landscape</option>
-              <option>Hospitality</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Message</label>
-            <textarea placeholder="Describe your lighting requirements..." id="fMessage" rows="4"></textarea>
-          </div>
-          <button class="btn-primary full-width" id="submitBtn" onclick="submitForm()">
-            Send Request <i class="fa-solid fa-paper-plane"></i>
-          </button>
-          <p class="form-success" id="formSuccess">✅ Thanks! We'll get back to you within 24 hours.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== FOOTER ===== -->
-  <footer id="footer">
-    <div class="container">
-      <div class="footer-grid">
-        <div class="footer-brand">
-          <a href="#" class="pravi-logo">
-            <img src="logo.jpeg" alt="Pravi Technologies" style="height:48px; width:auto; object-fit:contain;">
-            <div class="pravi-logo-text">
-              <span class="pravi-name" id="footerBrandName">PRAVI</span>
-              <span class="pravi-sub">Technologies</span>
-            </div>
-          </a>
-          <p id="footerTagline">Innovative lighting solutions trusted across India since 2012. Your space, brilliantly lit.</p>
-          <div class="social-links">
-            <a href="#" id="footerFb"><i class="fa-brands fa-facebook"></i></a>
-            <a href="#" id="footerIg"><i class="fa-brands fa-instagram"></i></a>
-            <a href="#" id="footerLi"><i class="fa-brands fa-linkedin"></i></a>
-          </div>
-        </div>
-        <div class="footer-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="#about">About Us</a></li>
-            <li><a href="#products">Products</a></li>
-            <li><a href="#facility">Facility</a></li>
-            <li><a href="#gallery">Gallery</a></li>
-            <li><a href="#clients">Clients</a></li>
-            <li><a href="#map-section">Find Us</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Products</h4>
-          <ul>
-            <li><a href="#">Track Lighting</a></li>
-            <li><a href="#">LED Strips</a></li>
-            <li><a href="#">Pendant Lights</a></li>
-            <li><a href="#">Flood Lights</a></li>
-            <li><a href="#">Frame Panels</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Contact</h4>
-          <ul>
-            <li><i class="fa-solid fa-phone"></i> <span id="footerPhone">+91 98765 43210</span></li>
-            <li><i class="fa-solid fa-envelope"></i> <a id="footerEmail" href="/cdn-cgi/l/email-protection#1f767179705f6f6d7e69766b7a7c777170737078767a6c317671"><span class="__cf_email__" data-cfemail="acc5c2cac3ecdcdecddac5d8c9cfc4c2c3c0c3cbc5c9df82c5c2">[email&#160;protected]</span></a></li>
-            <li><i class="fa-solid fa-location-dot"></i> Bengaluru, India</li>
-          </ul>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <p id="footerCopyright">© 2024 Pravi Technologies. All rights reserved.</p>
-        <div class="footer-legal">
-          <a href="#privacy">Privacy Policy</a>
-          <a href="#terms">Terms of Service</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ===== PRIVACY POLICY ===== -->
-  <section id="privacy" class="legal-section">
-    <div class="container">
-      <h2 class="section-title">PRIVACY <span>POLICY</span></h2>
-      <div class="legal-content">
-        <p><strong>Effective Date:</strong> January 1, 2024</p>
-        <p>Pravi Technologies ("we", "us", or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you visit our website.</p>
-        <h3>Information We Collect</h3>
-        <p>We may collect personal information such as your name, email address, phone number, and project details when you fill out our contact or quote request form.</p>
-        <h3>How We Use Your Information</h3>
-        <p>Your information is used solely to respond to your inquiries, process quote requests, and improve our services. We do not sell or share your data with third parties without your consent.</p>
-        <h3>Data Security</h3>
-        <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
-        <h3>Contact Us</h3>
-        <p>For any privacy-related concerns, contact us at <a href="/cdn-cgi/l/email-protection#70191e161f300002110619041513181e1f1c1f171915035e191e"><span class="__cf_email__" data-cfemail="71181f171e310103100718051412191f1e1d1e161814025f181f">[email&#160;protected]</span></a>.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== TERMS OF SERVICE ===== -->
-  <section id="terms" class="legal-section">
-    <div class="container">
-      <h2 class="section-title">TERMS OF <span>SERVICE</span></h2>
-      <div class="legal-content">
-        <p><strong>Effective Date:</strong> January 1, 2024</p>
-        <p>By accessing and using this website, you accept and agree to be bound by the following terms and conditions.</p>
-        <h3>Use of Website</h3>
-        <p>This website is intended for informational purposes and to facilitate quote requests. Unauthorized use of this website may give rise to a claim for damages.</p>
-        <h3>Intellectual Property</h3>
-        <p>All content on this website, including text, graphics, logos, and images, is the property of Pravi Technologies and protected by applicable intellectual property laws.</p>
-        <h3>Limitation of Liability</h3>
-        <p>Pravi Technologies shall not be liable for any indirect, incidental, or consequential damages arising from the use of this website or our products.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== SCROLL TO TOP ===== -->
-  <button class="scroll-top" id="scrollTop"><i class="fa-solid fa-chevron-up"></i></button>
-
-  <!-- ===== WHATSAPP FLOATING BUTTON ===== -->
-  <div id="wa-float">
-    <div id="wa-tooltip-bubble">Chat with us on WhatsApp!</div>
-    <button id="wa-btn" onclick="openWhatsApp()" aria-label="Chat on WhatsApp">
-      <i class="fa-brands fa-whatsapp"></i>
-    </button>
-  </div>
-
-  <!-- ===== SCRIPTS ===== -->
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/c
+/* ──────────────────────────────────────────────────────
+   BOOT
+────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', bootSite);
