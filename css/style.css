@@ -1371,12 +1371,18 @@ body {
   inset: 0;
   background: #080c10;
   display: flex;
+  flex-direction: column;   /* IMPORTANT */
   align-items: center;
   justify-content: center;
   z-index: 9999;
-  opacity: 1;
-  pointer-events: all;
-  transition: opacity 0.4s ease;
+}
+
+/* center content */
+.loader-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 #pageLoader.active {
@@ -1405,7 +1411,7 @@ body.loading {
 
 /* 🔥 PROGRESS BAR */
 .progress-bar {
-  width: 200px;
+  width: 220px;
   height: 4px;
   background: rgba(255,255,255,0.1);
   border-radius: 10px;
