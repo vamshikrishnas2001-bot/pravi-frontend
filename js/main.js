@@ -109,6 +109,18 @@ function applyAbout(d) {
     titleEl.innerHTML = `${d.titleLine1 || 'ILLUMINATE'}<br><span id="aboutTitleAccent">${d.titleLine2Accent || 'YOUR SPACES'}</span>`;
   }
 
+  // About section images — controlled from admin panel
+  if (d.images) {
+    const card1 = document.getElementById('aboutImg1');
+    const card2 = document.getElementById('aboutImg2');
+    if (card1 && d.images.img1) {
+      card1.innerHTML = `<img src="${d.images.img1}" alt="About Pravi Technologies" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+    }
+    if (card2 && d.images.img2) {
+      card2.innerHTML = `<img src="${d.images.img2}" alt="About Pravi Technologies" loading="lazy" style="width:100%;height:100%;object-fit:cover;display:block;"/>`;
+    }
+  }
+
   if (d.features && d.features.length) {
     const iconMap = { 0: 'fa-bolt', 1: 'fa-palette', 2: 'fa-shield-halved', 3: 'fa-headset' };
     const grid = document.getElementById('featuresGrid');
