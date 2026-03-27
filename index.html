@@ -287,15 +287,191 @@
   <section id="about">
     <div class="container split-layout">
       <div class="split-media">
-        <div class="about-img-grid" id="aboutImgGrid">
-          <div class="about-img-card large" id="aboutImg1">
-            <div class="about-img-placeholder"><i class="fa-solid fa-image"></i></div>
+        <div class="about-logo-showcase">
+          <!-- Animated glow rings -->
+          <div class="logo-ring ring-1"></div>
+          <div class="logo-ring ring-2"></div>
+          <div class="logo-ring ring-3"></div>
+          <!-- Floating particles -->
+          <div class="logo-particle p1"></div>
+          <div class="logo-particle p2"></div>
+          <div class="logo-particle p3"></div>
+          <div class="logo-particle p4"></div>
+          <div class="logo-particle p5"></div>
+          <div class="logo-particle p6"></div>
+          <!-- Grid lines -->
+          <div class="logo-grid-lines"></div>
+          <!-- Corner accents -->
+          <div class="corner-accent ca-tl"></div>
+          <div class="corner-accent ca-tr"></div>
+          <div class="corner-accent ca-bl"></div>
+          <div class="corner-accent ca-br"></div>
+          <!-- Scan line -->
+          <div class="scan-line"></div>
+          <!-- Logo image -->
+          <div class="logo-img-frame">
+            <img src="logo.jpeg" alt="Pravi Technologies" class="about-logo-img" />
           </div>
-          <div class="about-img-card small" id="aboutImg2">
-            <div class="about-img-placeholder"><i class="fa-solid fa-image"></i></div>
+          <!-- Bottom label -->
+          <div class="logo-tagline-strip">
+            <span class="logo-tag-dot"></span>
+            <span class="logo-tag-text">www.pravitechnologies.in</span>
+            <span class="logo-tag-dot"></span>
           </div>
         </div>
       </div>
+
+      <style>
+        .about-logo-showcase {
+          position: relative;
+          width: 100%;
+          aspect-ratio: 1 / 1;
+          max-width: 480px;
+          margin: 0 auto;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: linear-gradient(135deg, #0a1a1a 0%, #0d2020 50%, #081515 100%);
+          border: 1px solid rgba(0,201,167,0.18);
+          overflow: hidden;
+        }
+
+        /* Grid lines background */
+        .logo-grid-lines {
+          position: absolute;
+          inset: 0;
+          background-image:
+            linear-gradient(rgba(0,201,167,0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0,201,167,0.05) 1px, transparent 1px);
+          background-size: 40px 40px;
+          pointer-events: none;
+        }
+
+        /* Animated rings */
+        .logo-ring {
+          position: absolute;
+          border-radius: 50%;
+          border: 1px solid rgba(0,201,167,0.2);
+          animation: ring-pulse 3s ease-in-out infinite;
+          pointer-events: none;
+        }
+        .ring-1 { width: 55%; height: 55%; animation-delay: 0s; border-color: rgba(0,201,167,0.25); }
+        .ring-2 { width: 72%; height: 72%; animation-delay: 0.8s; border-color: rgba(0,201,167,0.14); }
+        .ring-3 { width: 90%; height: 90%; animation-delay: 1.6s; border-color: rgba(0,201,167,0.08); }
+
+        @keyframes ring-pulse {
+          0%, 100% { transform: scale(1); opacity: 0.7; }
+          50% { transform: scale(1.04); opacity: 1; }
+        }
+
+        /* Floating particles */
+        .logo-particle {
+          position: absolute;
+          width: 5px; height: 5px;
+          border-radius: 50%;
+          background: var(--accent);
+          pointer-events: none;
+          animation: float-particle 4s ease-in-out infinite;
+        }
+        .p1 { top: 15%; left: 18%; animation-delay: 0s; opacity: 0.7; }
+        .p2 { top: 22%; right: 15%; animation-delay: 0.6s; opacity: 0.5; width: 3px; height: 3px; }
+        .p3 { bottom: 20%; left: 14%; animation-delay: 1.2s; opacity: 0.6; width: 4px; height: 4px; }
+        .p4 { bottom: 18%; right: 18%; animation-delay: 1.8s; opacity: 0.8; }
+        .p5 { top: 50%; left: 8%; animation-delay: 2.4s; opacity: 0.4; width: 3px; height: 3px; }
+        .p6 { top: 50%; right: 8%; animation-delay: 3s; opacity: 0.6; width: 3px; height: 3px; }
+
+        @keyframes float-particle {
+          0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+          50% { transform: translateY(-12px) scale(1.4); opacity: 1; }
+        }
+
+        /* Corner accents */
+        .corner-accent {
+          position: absolute;
+          width: 22px; height: 22px;
+          pointer-events: none;
+        }
+        .ca-tl { top: 16px; left: 16px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+        .ca-tr { top: 16px; right: 16px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+        .ca-bl { bottom: 50px; left: 16px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
+        .ca-br { bottom: 50px; right: 16px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
+
+        /* Scan line */
+        .scan-line {
+          position: absolute;
+          left: 0; right: 0;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, rgba(0,201,167,0.5), transparent);
+          animation: scan 4s linear infinite;
+          pointer-events: none;
+        }
+        @keyframes scan {
+          0% { top: 10%; opacity: 0; }
+          10% { opacity: 1; }
+          90% { opacity: 1; }
+          100% { top: 85%; opacity: 0; }
+        }
+
+        /* Logo image frame */
+        .logo-img-frame {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 62%;
+          aspect-ratio: 1/1;
+          animation: logo-float 3.5s ease-in-out infinite;
+        }
+        @keyframes logo-float {
+          0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 18px rgba(0,201,167,0.35)); }
+          50% { transform: translateY(-10px); filter: drop-shadow(0 0 32px rgba(0,201,167,0.6)); }
+        }
+
+        .about-logo-img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          border-radius: 8px;
+        }
+
+        /* Bottom strip */
+        .logo-tagline-strip {
+          position: absolute;
+          bottom: 0; left: 0; right: 0;
+          height: 40px;
+          background: rgba(0,201,167,0.06);
+          border-top: 1px solid rgba(0,201,167,0.18);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          z-index: 3;
+        }
+        .logo-tag-text {
+          font-family: var(--font-ui);
+          font-size: 0.65rem;
+          letter-spacing: 0.25em;
+          text-transform: uppercase;
+          color: var(--accent);
+          opacity: 0.8;
+        }
+        .logo-tag-dot {
+          width: 4px; height: 4px;
+          border-radius: 50%;
+          background: var(--accent);
+          opacity: 0.6;
+          animation: dot-blink 1.5s ease-in-out infinite;
+        }
+        .logo-tag-dot:last-child { animation-delay: 0.75s; }
+        @keyframes dot-blink {
+          0%, 100% { opacity: 0.6; } 50% { opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+          .about-logo-showcase { max-width: 320px; }
+        }
+      </style>
       <div class="split-text">
         <p class="section-eyebrow" id="aboutEyebrow">Why Choose Us</p>
         <h2 class="section-title" id="aboutTitle">ILLUMINATE<br><span id="aboutTitleAccent">YOUR SPACES</span></h2>
@@ -615,7 +791,7 @@
         <div class="contact-details">
           <div class="contact-item"><i class="fa-solid fa-location-dot"></i><p id="contactAddress">No. 45, 2nd Floor, Hosur Road, Electronic City, Bengaluru – 560100</p></div>
           <div class="contact-item"><i class="fa-solid fa-phone"></i><p id="contactPhone">+91 98765 43210</p></div>
-          <div class="contact-item"><i class="fa-solid fa-envelope"></i><p><a id="contactEmail" href="/cdn-cgi/l/email-protection#5e373038311e2e2c3f28372a3b3d363031323139373b2d703730"><span class="__cf_email__" data-cfemail="177e79717857676576617e6372747f79787b78707e7264397e79">[email&#160;protected]</span></a></p></div>
+          <div class="contact-item"><i class="fa-solid fa-envelope"></i><p><a id="contactEmail" href="/cdn-cgi/l/email-protection#422b2c242d02323023342b3627212a2c2d2e2d252b27316c2b2c"><span class="__cf_email__" data-cfemail="c4adaaa2ab84b4b6a5b2adb0a1a7acaaaba8aba3ada1b7eaadaa">[email&#160;protected]</span></a></p></div>
           <div class="contact-item"><i class="fa-solid fa-clock"></i><p id="contactHours">Mon – Sat: 9:00 AM – 6:00 PM</p></div>
         </div>
         <div class="social-links" id="socialLinks">
@@ -709,7 +885,7 @@
           <h4>Contact</h4>
           <ul>
             <li><i class="fa-solid fa-phone"></i> <span id="footerPhone">+91 98765 43210</span></li>
-            <li><i class="fa-solid fa-envelope"></i> <a id="footerEmail" href="/cdn-cgi/l/email-protection#1f767179705f6f6d7e69766b7a7c777170737078767a6c317671"><span class="__cf_email__" data-cfemail="acc5c2cac3ecdcdecddac5d8c9cfc4c2c3c0c3cbc5c9df82c5c2">[email&#160;protected]</span></a></li>
+            <li><i class="fa-solid fa-envelope"></i> <a id="footerEmail" href="/cdn-cgi/l/email-protection#d8b1b6beb798a8aab9aeb1acbdbbb0b6b7b4b7bfb1bdabf6b1b6"><span class="__cf_email__" data-cfemail="6900070f0629191b081f001d0c0a01070605060e000c1a470007">[email&#160;protected]</span></a></li>
             <li><i class="fa-solid fa-location-dot"></i> Bengaluru, India</li>
           </ul>
         </div>
@@ -738,7 +914,7 @@
         <h3>Data Security</h3>
         <p>We implement appropriate technical and organizational measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.</p>
         <h3>Contact Us</h3>
-        <p>For any privacy-related concerns, contact us at <a href="/cdn-cgi/l/email-protection#70191e161f300002110619041513181e1f1c1f171915035e191e"><span class="__cf_email__" data-cfemail="71181f171e310103100718051412191f1e1d1e161814025f181f">[email&#160;protected]</span></a>.</p>
+        <p>For any privacy-related concerns, contact us at <a href="/cdn-cgi/l/email-protection#274e49414867575546514e5342444f49484b48404e4254094e49"><span class="__cf_email__" data-cfemail="bcd5d2dad3fcccceddcad5c8d9dfd4d2d3d0d3dbd5d9cf92d5d2">[email&#160;protected]</span></a>.</p>
       </div>
     </div>
   </section>
@@ -772,7 +948,7 @@
   </div>
 
   <!-- ===== SCRIPTS ===== -->
-  <script src="js/main.js"></script>
+    <script src="js/main.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('q72zrqwbWd5q_ygD4');</script>
   <div class="dev-footer">
