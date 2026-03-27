@@ -525,25 +525,6 @@ function initUI() {
     });
   }
 
-  /* 🔥 GALLERY FILTER */
-document.querySelectorAll('.filter-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-
-    const category = btn.dataset.filter;
-
-    document.querySelectorAll('.gallery-item').forEach(item => {
-
-      if (category === "all" || item.dataset.cat === category) {
-        item.style.display = "";
-      } else {
-        item.style.display = "none";
-      }
-
-    });
-
-  });
-});
-
   /* Scroll to top */
   if (scrollTopBtn) scrollTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
 
