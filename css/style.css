@@ -1354,10 +1354,34 @@ body {
   margin-top: auto;
 }
 
-
 .gallery-item {
-  height: 250px; /* 🔥 IMPORTANT */
+  position: relative;
+  overflow: hidden;
 }
+
+/* default */
+.gallery-item {
+  height: 220px;
+}
+
+/* 🔥 different sizes */
+.gallery-item.tall {
+  height: 320px;
+}
+
+.gallery-item.wide {
+  grid-column: span 2;
+  height: 220px;
+}
+
+/* image fix */
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 
 .dev-footer strong {
   color: #0bbfa0;
