@@ -681,3 +681,23 @@ function esc(str) {
    BOOT
 ────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', bootSite);
+
+// 🔥 PREMIUM PAGE LOADER
+document.querySelectorAll('a').forEach(link => {
+  link.addEventListener('click', function(e) {
+
+    const href = this.getAttribute('href');
+
+    if (!href || href.startsWith('#')) return;
+
+    e.preventDefault();
+
+    const loader = document.getElementById('pageLoader');
+    loader.classList.add('active');
+    document.body.classList.add('loading');
+
+    setTimeout(() => {
+      window.location.href = href;
+    }, 2000);
+  });
+});
