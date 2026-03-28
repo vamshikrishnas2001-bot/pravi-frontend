@@ -1190,3 +1190,41 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
   } catch {}
 });
+
+/* ══════════════════════════════════════════════════════
+   SESSION TIMEOUT — auto logout after 30 min inactivity
+══════════════════════════════════════════════════════ */
+(function sessionTimeout() {
+  const TIMEOUT     = 10 * 1000; // 30 minutes
+  const WARN_BEFORE = 5  * 60 * 1000; // warn 5 min before
+
+  let logoutTimer;
+  let warnTimer;
+
+  function resetTimers() {
+    // Clear existing timers
+    clearTimeout(logoutTimer);
+    clearTimeout(warnTimer);
+
+    // Warning at 25 minutes
+    warnTimer = setTimeout(() => {
+      showToast('⚠️ You will be logged out in 5 minutes due to inactivity!', true);
+    }, TIMEOUT - WARN_BEFORE);
+
+    // Logout at 30 minutes
+    logoutTimer = setTimeout(() => {
+      showToast('🔒 Session expired. Logging out...', true);
+      setTimeout(() => {
+        localStorage.removeItem('token');
+        window.location.href = 'admin-login.html';
+      }, 2000); // wait 2s so they can see the toast
+    }, TIMEOUT);
+  }
+
+  // Reset timer on any user activity
+  ['mousemove', 'mousedown', 'keypress', 'scroll', 'touchstart', 'click']
+    .forEach(event => document.addEventListener(event, resetTimers));
+
+  // Start the timer on page load
+  resetTimers();
+})();
