@@ -1195,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', async function () {
    SESSION TIMEOUT — auto logout after 30 min inactivity
 ══════════════════════════════════════════════════════ */
 (function sessionTimeout() {
-  const TIMEOUT     = 10 * 1000; // 30 minutes
+  const TIMEOUT     = 15 * 60 * 1000; // 15 minutes
   const WARN_BEFORE = 5  * 60 * 1000; // warn 5 min before
 
   let logoutTimer;
