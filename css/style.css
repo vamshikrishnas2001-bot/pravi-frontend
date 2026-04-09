@@ -1292,16 +1292,20 @@ img { max-width: 100%; display: block; }
 
 .hero-img-wrapper {
   width: 100%;
-  max-width: 520px;
+  max-width: 560px;
+  background: transparent;
+  border: none;
+  outline: none;
   animation: fadeInUp 1s ease both;
 }
 
-.hero-img-wrapper svg,
-.hero-img-wrapper img {
+.hero-img-wrapper svg {
   width: 100%;
   height: auto;
   display: block;
-  filter: drop-shadow(0 0 40px rgba(0,201,167,0.25));
+  background: transparent;
+  overflow: visible;
+  filter: drop-shadow(0 0 60px rgba(0,201,167,0.3));
 }
 
 
