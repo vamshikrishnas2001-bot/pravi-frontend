@@ -1292,11 +1292,14 @@ img { max-width: 100%; display: block; }
 
 .hero-img-wrapper {
   width: 100%;
-  max-width: 560px;
+  max-width: 600px;
   background: transparent;
   border: none;
   outline: none;
-  animation: fadeInUp 1s ease both;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: svgFloat 4s ease-in-out infinite, fadeInUp 1s ease both;
 }
 
 .hero-img-wrapper svg {
@@ -1305,7 +1308,14 @@ img { max-width: 100%; display: block; }
   display: block;
   background: transparent;
   overflow: visible;
-  filter: drop-shadow(0 0 60px rgba(0,201,167,0.3));
+  filter:
+    drop-shadow(0 0 30px rgba(0,201,167,0.45))
+    drop-shadow(0 0 80px rgba(0,201,167,0.2));
+}
+
+@keyframes svgFloat {
+  0%, 100% { transform: translateY(0px); filter: drop-shadow(0 0 30px rgba(0,201,167,0.45)) drop-shadow(0 0 80px rgba(0,201,167,0.2)); }
+  50% { transform: translateY(-12px); filter: drop-shadow(0 0 45px rgba(0,201,167,0.65)) drop-shadow(0 0 100px rgba(0,201,167,0.3)); }
 }
 
 
