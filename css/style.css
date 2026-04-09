@@ -299,12 +299,12 @@ img { max-width: 100%; display: block; }
 
 
 .hero-content {
-  max-width: 860px;
+  max-width: 1200px;
   margin: 0 auto;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   align-items: center;
-  text-align: center;
+  gap: 4rem;
   width: 100%;
 }
 
@@ -334,7 +334,7 @@ img { max-width: 100%; display: block; }
   color: var(--text-secondary);
   line-height: 1.8;
   max-width: 560px;
-  margin: 0 auto 2rem;
+  margin: 0 0 2rem;
   animation: fadeInUp 1s ease both;
 }
 
@@ -342,7 +342,7 @@ img { max-width: 100%; display: block; }
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
   margin-bottom: 3rem;
   animation: fadeInUp 1.1s ease both;
 }
@@ -350,7 +350,7 @@ img { max-width: 100%; display: block; }
 .hero-stats {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 2rem;
   animation: fadeInUp 1.3s ease both;
 }
@@ -1282,10 +1282,29 @@ img { max-width: 100%; display: block; }
 }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
-/* ===========================
-   HERO LEFT COL
-   =========================== */
-.hero-left { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.hero-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-img-wrapper {
+  width: 100%;
+  max-width: 520px;
+  animation: fadeInUp 1s ease both;
+}
+
+.hero-img-wrapper svg,
+.hero-img-wrapper img {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 0 40px rgba(0,201,167,0.25));
+}
+
+
 
 /* ===========================
    RESPONSIVE
@@ -1299,6 +1318,7 @@ img { max-width: 100%; display: block; }
   .nav-links { display: none; }
   .hamburger { display: flex; }
   .hero-content { grid-template-columns: 1fr; text-align: center; }
+  .hero-left { align-items: center; text-align: center; }
   .hero-image { display: none; }
   .hero-desc { margin: 0 auto 2rem; }
   .hero-btns { justify-content: center; }
@@ -1506,8 +1526,10 @@ body {
 
   /* 🔧 HERO STATS FIX */
   .hero-stats {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;
     gap: 1rem;
   }
 
