@@ -301,189 +301,84 @@
   <section id="about">
     <div class="container split-layout">
       <div class="split-media">
-        <div class="about-logo-showcase">
-          <!-- Animated glow rings -->
-          <div class="logo-ring ring-1"></div>
-          <div class="logo-ring ring-2"></div>
-          <div class="logo-ring ring-3"></div>
-          <!-- Floating particles -->
-          <div class="logo-particle p1"></div>
-          <div class="logo-particle p2"></div>
-          <div class="logo-particle p3"></div>
-          <div class="logo-particle p4"></div>
-          <div class="logo-particle p5"></div>
-          <div class="logo-particle p6"></div>
-          <!-- Grid lines -->
-          <div class="logo-grid-lines"></div>
-          <!-- Corner accents -->
-          <div class="corner-accent ca-tl"></div>
-          <div class="corner-accent ca-tr"></div>
-          <div class="corner-accent ca-bl"></div>
-          <div class="corner-accent ca-br"></div>
-          <!-- Scan line -->
-          <div class="scan-line"></div>
-          <!-- Logo image -->
-          <div class="logo-img-frame">
-            <img src="logo.webp" alt="Pravi Technologies" class="about-logo-img" />
+        <div class="about-images-showcase">
+          <div class="about-img-main">
+            <img src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80" alt="Kitchen Lighting" />
           </div>
-          <!-- Bottom label -->
-          <div class="logo-tagline-strip">
-            <span class="logo-tag-dot"></span>
-            <span class="logo-tag-text">www.pravitechnologies.in</span>
-            <span class="logo-tag-dot"></span>
+          <div class="about-img-overlay">
+            <img src="https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=800&q=80" alt="Ceiling Lighting" />
           </div>
+          <!-- Accent line -->
+          <div class="about-img-accent-line"></div>
         </div>
       </div>
 
       <style>
-        .about-logo-showcase {
+        .about-images-showcase {
           position: relative;
           width: 100%;
-          aspect-ratio: 1 / 1;
-          max-width: 480px;
+          height: 480px;
+          max-width: 520px;
           margin: 0 auto;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: linear-gradient(135deg, #0a1a1a 0%, #0d2020 50%, #081515 100%);
-          border: 1px solid rgba(0,201,167,0.18);
+        }
+
+        .about-img-main {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 72%;
+          height: 68%;
+          border-radius: 10px;
           overflow: hidden;
+          z-index: 1;
+          border: 2px solid rgba(0,201,167,0.15);
         }
 
-        /* Grid lines background */
-        .logo-grid-lines {
-          position: absolute;
-          inset: 0;
-          background-image:
-            linear-gradient(rgba(0,201,167,0.05) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,201,167,0.05) 1px, transparent 1px);
-          background-size: 40px 40px;
-          pointer-events: none;
-        }
-
-        /* Animated rings */
-        .logo-ring {
-          position: absolute;
-          border-radius: 50%;
-          border: 1px solid rgba(0,201,167,0.2);
-          animation: ring-pulse 3s ease-in-out infinite;
-          pointer-events: none;
-        }
-        .ring-1 { width: 55%; height: 55%; animation-delay: 0s; border-color: rgba(0,201,167,0.25); }
-        .ring-2 { width: 72%; height: 72%; animation-delay: 0.8s; border-color: rgba(0,201,167,0.14); }
-        .ring-3 { width: 90%; height: 90%; animation-delay: 1.6s; border-color: rgba(0,201,167,0.08); }
-
-        @keyframes ring-pulse {
-          0%, 100% { transform: scale(1); opacity: 0.7; }
-          50% { transform: scale(1.04); opacity: 1; }
-        }
-
-        /* Floating particles */
-        .logo-particle {
-          position: absolute;
-          width: 5px; height: 5px;
-          border-radius: 50%;
-          background: var(--accent);
-          pointer-events: none;
-          animation: float-particle 4s ease-in-out infinite;
-        }
-        .p1 { top: 15%; left: 18%; animation-delay: 0s; opacity: 0.7; }
-        .p2 { top: 22%; right: 15%; animation-delay: 0.6s; opacity: 0.5; width: 3px; height: 3px; }
-        .p3 { bottom: 20%; left: 14%; animation-delay: 1.2s; opacity: 0.6; width: 4px; height: 4px; }
-        .p4 { bottom: 18%; right: 18%; animation-delay: 1.8s; opacity: 0.8; }
-        .p5 { top: 50%; left: 8%; animation-delay: 2.4s; opacity: 0.4; width: 3px; height: 3px; }
-        .p6 { top: 50%; right: 8%; animation-delay: 3s; opacity: 0.6; width: 3px; height: 3px; }
-
-        @keyframes float-particle {
-          0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
-          50% { transform: translateY(-12px) scale(1.4); opacity: 1; }
-        }
-
-        /* Corner accents */
-        .corner-accent {
-          position: absolute;
-          width: 22px; height: 22px;
-          pointer-events: none;
-        }
-        .ca-tl { top: 16px; left: 16px; border-top: 2px solid var(--accent); border-left: 2px solid var(--accent); }
-        .ca-tr { top: 16px; right: 16px; border-top: 2px solid var(--accent); border-right: 2px solid var(--accent); }
-        .ca-bl { bottom: 50px; left: 16px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
-        .ca-br { bottom: 50px; right: 16px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
-
-        /* Scan line */
-        .scan-line {
-          position: absolute;
-          left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(0,201,167,0.5), transparent);
-          animation: scan 4s linear infinite;
-          pointer-events: none;
-        }
-        @keyframes scan {
-          0% { top: 10%; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { top: 85%; opacity: 0; }
-        }
-
-        /* Logo image frame */
-        .logo-img-frame {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 62%;
-          aspect-ratio: 1/1;
-          animation: logo-float 3.5s ease-in-out infinite;
-        }
-        @keyframes logo-float {
-          0%, 100% { transform: translateY(0); filter: drop-shadow(0 0 18px rgba(0,201,167,0.35)); }
-          50% { transform: translateY(-10px); filter: drop-shadow(0 0 32px rgba(0,201,167,0.6)); }
-        }
-
-        .about-logo-img {
+        .about-img-main img {
           width: 100%;
           height: 100%;
-          object-fit: contain;
-          border-radius: 8px;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.5s ease;
+        }
+        .about-img-main:hover img { transform: scale(1.04); }
+
+        .about-img-overlay {
+          position: absolute;
+          bottom: 0;
+          right: 0;
+          width: 68%;
+          height: 58%;
+          border-radius: 10px;
+          overflow: hidden;
+          z-index: 2;
+          border: 3px solid #0a1a1a;
+          outline: 2px solid rgba(0,201,167,0.25);
         }
 
-        /* Bottom strip */
-        .logo-tagline-strip {
+        .about-img-overlay img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.5s ease;
+        }
+        .about-img-overlay:hover img { transform: scale(1.04); }
+
+        .about-img-accent-line {
           position: absolute;
-          bottom: 0; left: 0; right: 0;
-          height: 40px;
-          background: rgba(0,201,167,0.06);
-          border-top: 1px solid rgba(0,201,167,0.18);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 3px;
+          height: 60px;
+          background: linear-gradient(to bottom, transparent, var(--accent), transparent);
           z-index: 3;
-        }
-        .logo-tag-text {
-          font-family: var(--font-ui);
-          font-size: 0.65rem;
-          letter-spacing: 0.25em;
-          text-transform: uppercase;
-          color: var(--accent);
-          opacity: 0.8;
-        }
-        .logo-tag-dot {
-          width: 4px; height: 4px;
-          border-radius: 50%;
-          background: var(--accent);
-          opacity: 0.6;
-          animation: dot-blink 1.5s ease-in-out infinite;
-        }
-        .logo-tag-dot:last-child { animation-delay: 0.75s; }
-        @keyframes dot-blink {
-          0%, 100% { opacity: 0.6; } 50% { opacity: 1; }
+          border-radius: 2px;
         }
 
         @media (max-width: 768px) {
-          .about-logo-showcase { max-width: 320px; }
+          .about-images-showcase { height: 320px; max-width: 340px; }
         }
       </style>
       <div class="split-text">
