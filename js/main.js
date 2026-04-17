@@ -272,11 +272,49 @@ function openWhatsApp() {
 function applyClients(d) {
   const marquee = document.getElementById('clientsMarquee');
   if (!marquee || !d.items || !d.items.length) return;
-  const all = [...d.items, ...d.items]; // duplicate for infinite scroll
-  marquee.innerHTML = all.map(c => {
-    if (c.logo) return `<div class="client-logo"><img src="${c.logo}" alt="${esc(c.name)}" style="height:32px;width:auto;filter:grayscale(1) brightness(0.6);transition:filter 0.3s"/></div>`;
+
+  const items = d.items;
+
+  // Ensure enough copies to always fill the screen with no gaps.
+  // We need at least enough items so one full "set" is wider than viewport.
+  // Minimum 3 sets, but if items are few we add more copies.
+  const minSets = Math.max(3, Math.ceil(20 / items.length));
+  // Build one "set" of HTML
+  const setHTML = items.map(c => {
+    if (c.displayAs === 'image' && c.logo)
+      return `<div class="client-logo"><img src="${c.logo}" alt="${esc(c.name)}" loading="lazy"/></div>`;
     return `<div class="client-logo">${esc(c.name)}</div>`;
   }).join('');
+
+  // Render minSets + 1 extra set (the +1 is the "reset" set for seamless loop)
+  marquee.innerHTML = Array(minSets + 1).fill(setHTML).join('');
+
+  // Wrap all items in two groups: [group A] [group B]
+  // We animate group A out and reset — standard seamless marquee technique
+  // Instead, use the CSS keyframe approach: animate exactly -(100% / (minSets+1))
+  // so the reset is imperceptible.
+  const pct = (100 / (minSets + 1)).toFixed(4);
+  
+  // Inject a scoped style for this specific animation
+  let styleTag = document.getElementById('marquee-dynamic-style');
+  if (!styleTag) {
+    styleTag = document.createElement('style');
+    styleTag.id = 'marquee-dynamic-style';
+    document.head.appendChild(styleTag);
+  }
+
+  // Speed: base speed per item is ~3s, min 12s, max 40s total
+  const speed = Math.min(40, Math.max(12, items.length * 3));
+
+  styleTag.textContent = `
+    @keyframes marquee-dynamic {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-${pct}%); }
+    }
+    #clientsMarquee {
+      animation: marquee-dynamic ${speed}s linear infinite !important;
+    }
+  `;
 }
 
 /* ──────────────────────────────────────────────────────
