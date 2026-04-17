@@ -886,12 +886,16 @@ img { max-width: 100%; display: block; }
   border-bottom: 1px solid var(--border);
   margin-bottom: 4rem;
   padding: 1.5rem 0;
+  position: relative;   /* needed for overflow:hidden to clip children */
+  width: 100%;
 }
 .clients-marquee {
   display: flex;
   gap: 4rem;
-  animation: marquee 25s linear infinite;
+  width: max-content;        /* never wrap — must be wider than the viewport */
+  animation: marquee 25s linear infinite;  /* fallback; JS overrides with marquee-dynamic */
   white-space: nowrap;
+  will-change: transform;   /* GPU compositing for smooth scroll */
 }
 .clients-marquee:hover { animation-play-state: paused; }
 .client-logo {
