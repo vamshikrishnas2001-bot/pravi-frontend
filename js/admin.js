@@ -692,28 +692,33 @@ function applyClients(d) {
   if (!d || !d.items) return;
   const list = document.getElementById('clientList');
   if (!list) return;
-  list.innerHTML = d.items.map((c, i) => `
-    <div class="list-item" data-idx="${i}">
+  list.innerHTML = d.items.map((c, i) => {
+    const showLogo = c.displayAs === 'image' && c.logo;
+    const subLabel = showLogo ? 'Has logo' : 'Text only';
+    return `
+    <div class="list-item" data-idx="${i}" data-logo="${esc(c.logo || '')}" data-display-as="${esc(c.displayAs || 'text')}">
       <i class="drag-handle fa-solid fa-grip-vertical"></i>
       <div class="img-thumb" style="width:44px;height:44px;flex-shrink:0;background:var(--surface3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);overflow:hidden">
-        ${c.logo ? `<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;padding:4px"/>` : 'LOGO'}
+        ${showLogo ? `<img src="${c.logo}" style="width:100%;height:100%;object-fit:contain;padding:4px"/>` : 'LOGO'}
       </div>
       <div class="list-item-content">
         <div class="lname">${esc(c.name)}</div>
-        <div class="lsub">${c.logo ? 'Has logo' : 'Text only'}</div>
+        <div class="lsub">${subLabel}</div>
       </div>
       <div class="list-item-actions">
         <button class="icon-btn del" onclick="removeItem(this)"><i class="fa-solid fa-trash"></i></button>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function saveClientModal() {
   const btn = document.querySelector('#modal-client .btn-save');
   setLoading(btn, true);
   try {
-    const name    = document.getElementById('cName').value;
-    const imgFile = document.querySelector('#modal-client input[type=file]')?.files[0];
+    const name      = document.getElementById('cName').value.trim();
+    const displayAs = document.getElementById('cDisplay')?.value || 'text';
+    const imgFile   = document.querySelector('#modal-client input[type=file]')?.files[0];
     let logo = null;
     if (imgFile) logo = await uploadImage(imgFile, 'clients', 'logo_' + Date.now());
 
@@ -722,7 +727,7 @@ async function saveClientModal() {
       const r = await fetch(`${API}/site/clients`);
       if (r.ok) { const d = await r.json(); items = d.items || []; }
     } catch {}
-    items.push({ name, logo });
+    items.push({ name, logo, displayAs });
 
     const ok = await saveSection('clients', { items }, null);
     if (ok) { closeModal('client'); loadSection('clients', applyClients); }
@@ -733,7 +738,12 @@ async function saveClients() {
   const btn = document.querySelector('#panel-clients .btn-save');
   const items = [];
   document.querySelectorAll('#clientList .list-item').forEach(el => {
-    items.push({ name: el.querySelector('.lname').textContent });
+    // Preserve all fields stored as data attributes on the list item
+    items.push({
+      name:      el.querySelector('.lname').textContent,
+      logo:      el.dataset.logo      || null,
+      displayAs: el.dataset.displayAs || 'text'
+    });
   });
   await saveSection('clients', { items }, btn);
 }
